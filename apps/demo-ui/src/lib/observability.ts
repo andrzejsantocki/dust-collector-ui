@@ -49,13 +49,17 @@ export async function initObservability() {
     api_host: POSTHOG_HOST,
     capture_pageview: true,
     capture_pageleave: true,
-    autocapture: false,
+    request_batching: false,
     session_recording: {
       maskAllInputs: true,
       maskInputOptions: { password: true, email: true },
     },
   });
   enabled = true;
+  capture("page_view", {
+    path: window.location.pathname,
+    search: window.location.search,
+  });
 }
 
 export function capture(event: string, props: EventProps = {}) {

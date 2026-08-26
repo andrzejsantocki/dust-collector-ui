@@ -287,7 +287,18 @@ function App() {
     const measure = async () => {
       const started = performance.now();
       try {
-        await connection.getLatestBlockhash("processed");
+        const res = await fetch(RPC_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            jsonrpc: "2.0",
+            id: "tidify-health",
+            method: "getLatestBlockhash",
+            params: [{ commitment: "processed" }],
+          }),
+        });
+        if (!res.ok) throw new Error(`RPC HTTP ${res.status}`);
+        await res.json();
         if (!cancelled) setHeliusLatency(Math.max(1, Math.round(performance.now() - started)));
       } catch {
         if (!cancelled) setHeliusLatency(null);
@@ -299,7 +310,7 @@ function App() {
       cancelled = true;
       window.clearInterval(timer);
     };
-  }, [connection]);
+  }, []);
 
   const program = useMemo(() => {
     if (!connected || !wallet.signTransaction || !wallet.signAllTransactions || !wallet.publicKey)
