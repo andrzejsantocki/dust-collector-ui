@@ -1,7 +1,10 @@
 .env
 .env.*
+*.env
+*.env.*
 !.env.example
 node_modules/
 dist/
 .wrangler/
 .dev.vars
+apps/demo-ui/dist/

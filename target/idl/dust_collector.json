@@ -1,0 +1,1218 @@
+{
+  "address": "H5ix9UP5hx3k5W3nu1rMdbDgo5Ahb9Q8RANLdoiXYCgw",
+  "metadata": {
+    "name": "dust_collector",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Solana dust collector: close empty ATAs, burn uneconomic dust, swap viable dust via Jupiter CPI"
+  },
+  "instructions": [
+    {
+      "name": "burn_and_close",
+      "discriminator": [
+        157,
+        186,
+        37,
+        212,
+        64,
+        201,
+        41,
+        237
+      ],
+      "accounts": [
+        {
+          "name": "user",
+          "docs": [
+            "Signer: the account owner who authorizes the burn and pays the fee."
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "source",
+          "docs": [
+            "The token account holding uneconomic dust."
+          ],
+          "writable": true
+        },
+        {
+          "name": "mint",
+          "docs": [
+            "Writable because BurnChecked decrements mint supply."
+          ],
+          "writable": true
+        },
+        {
+          "name": "protocol_vault",
+          "writable": true
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "stats",
+          "docs": [
+            "Appended for rollout compatibility: the legacy account prefix is unchanged."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  116,
+                  115
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "user_max_fee_lamports",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "close_empty",
+      "discriminator": [
+        101,
+        102,
+        88,
+        222,
+        160,
+        228,
+        144,
+        52
+      ],
+      "accounts": [
+        {
+          "name": "user",
+          "docs": [
+            "Signer: the account owner who authorizes the close and pays the fee."
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "source",
+          "docs": [
+            "The (empty) token account being closed."
+          ],
+          "writable": true
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "protocol_vault",
+          "writable": true
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "stats",
+          "docs": [
+            "Appended for rollout compatibility: the legacy account prefix is unchanged."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  116,
+                  115
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "user_max_fee_lamports",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "initialize_config",
+      "discriminator": [
+        208,
+        127,
+        21,
+        1,
+        194,
+        190,
+        196,
+        70
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "docs": [
+            "Protocol fee vault, created rent-exempt at init. The vault is a PDA so",
+            "it is deterministic and can never be \"forgotten\" or replaced."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "InitConfigArgs"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "initialize_stats",
+      "discriminator": [
+        144,
+        201,
+        117,
+        76,
+        127,
+        118,
+        176,
+        16
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "stats",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  116,
+                  115
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "swap_and_close",
+      "discriminator": [
+        238,
+        219,
+        24,
+        58,
+        94,
+        1,
+        206,
+        223
+      ],
+      "accounts": [
+        {
+          "name": "user",
+          "docs": [
+            "Signer: the account owner who authorizes the swap and close."
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "source",
+          "docs": [
+            "The token account holding dust to swap."
+          ],
+          "writable": true
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "destination",
+          "docs": [
+            "Output token account (user's ATA for the output mint). Must already",
+            "exist — the planner creates it before building the swap. Its balance",
+            "delta after the CPIs is the measured swap output."
+          ],
+          "writable": true
+        },
+        {
+          "name": "fee_account",
+          "docs": [
+            "Jupiter platform-fee account. Validated in the handler to be a token",
+            "account owned by the protocol vault."
+          ],
+          "writable": true
+        },
+        {
+          "name": "protocol_vault",
+          "writable": true
+        },
+        {
+          "name": "jupiter_program"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "stats",
+          "docs": [
+            "Appended for rollout compatibility: the legacy account prefix is unchanged."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  116,
+                  115
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "SwapArgs"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "sweep_vault",
+      "discriminator": [
+        137,
+        92,
+        9,
+        1,
+        140,
+        237,
+        214,
+        140
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "docs": [
+            "Signer: the protocol admin (`config.admin`). Receives the swept SOL",
+            "(`lamports`) if requested."
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "docs": [
+            "authority on `source`; the program signs for it via invoke_signed.",
+            "`mut` because the SOL part of the sweep decreases its lamports."
+          ],
+          "writable": true
+        },
+        {
+          "name": "source",
+          "docs": [
+            "Vault-owned token account holding accumulated protocol fees (the",
+            "Jupiter platform-fee account). Authority must be the vault PDA."
+          ],
+          "writable": true
+        },
+        {
+          "name": "mint",
+          "docs": [
+            "Shared mint of `source` and `destination` (checked by the token",
+            "program itself via transfer_checked)."
+          ]
+        },
+        {
+          "name": "destination",
+          "docs": [
+            "Admin-owned token account of the same mint — where the sweep lands."
+          ],
+          "writable": true
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "lamports",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "update_config",
+      "discriminator": [
+        29,
+        158,
+        252,
+        191,
+        10,
+        83,
+        219,
+        99
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "UpdateConfigArgs"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Config",
+      "discriminator": [
+        155,
+        12,
+        170,
+        224,
+        30,
+        250,
+        204,
+        130
+      ]
+    },
+    {
+      "name": "ProtocolStats",
+      "discriminator": [
+        133,
+        227,
+        216,
+        241,
+        235,
+        172,
+        35,
+        31
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "CollectionEvent",
+      "discriminator": [
+        7,
+        95,
+        150,
+        48,
+        244,
+        126,
+        171,
+        72
+      ]
+    },
+    {
+      "name": "SweepEvent",
+      "discriminator": [
+        112,
+        81,
+        56,
+        216,
+        105,
+        243,
+        34,
+        221
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "Unauthorized",
+      "msg": "Only the admin can perform this action"
+    },
+    {
+      "code": 6001,
+      "name": "Paused",
+      "msg": "Protocol is paused"
+    },
+    {
+      "code": 6002,
+      "name": "WrongVault",
+      "msg": "Protocol vault mismatch"
+    },
+    {
+      "code": 6003,
+      "name": "FeeTooHigh",
+      "msg": "Fee exceeds the authorized maximum"
+    },
+    {
+      "code": 6004,
+      "name": "Overflow",
+      "msg": "Arithmetic overflow"
+    },
+    {
+      "code": 6005,
+      "name": "NotOwner",
+      "msg": "Token account is not owned by the signer"
+    },
+    {
+      "code": 6006,
+      "name": "WrongMint",
+      "msg": "Mint mismatch"
+    },
+    {
+      "code": 6007,
+      "name": "UnsupportedTokenProgram",
+      "msg": "Unsupported token program"
+    },
+    {
+      "code": 6008,
+      "name": "UnsupportedTokenExtension",
+      "msg": "Token-2022 mint or account carries an extension outside the V1 safe subset"
+    },
+    {
+      "code": 6009,
+      "name": "InvalidMint",
+      "msg": "Invalid Token-2022 mint data"
+    },
+    {
+      "code": 6010,
+      "name": "InvalidTokenAccount",
+      "msg": "Invalid token account data"
+    },
+    {
+      "code": 6011,
+      "name": "NotEmpty",
+      "msg": "Token account balance is not zero"
+    },
+    {
+      "code": 6012,
+      "name": "Empty",
+      "msg": "Token account balance is zero"
+    },
+    {
+      "code": 6013,
+      "name": "PartialBurn",
+      "msg": "Partial burn: token account still has a balance after burn"
+    },
+    {
+      "code": 6014,
+      "name": "AlreadyClosed",
+      "msg": "Token account is already closed"
+    },
+    {
+      "code": 6015,
+      "name": "JupiterProgramMismatch",
+      "msg": "Jupiter program mismatch"
+    },
+    {
+      "code": 6016,
+      "name": "FeeAccountMismatch",
+      "msg": "Fee account mismatch"
+    },
+    {
+      "code": 6017,
+      "name": "PlatformFeeTooHigh",
+      "msg": "Platform fee exceeds configured maximum"
+    },
+    {
+      "code": 6018,
+      "name": "SlippageExceeded",
+      "msg": "Minimum output not met"
+    },
+    {
+      "code": 6019,
+      "name": "SourceAmountExceeded",
+      "msg": "Source amount exceeds user-authorized amount"
+    },
+    {
+      "code": 6020,
+      "name": "MissingRouteAccount",
+      "msg": "A serialized route account is missing from the transaction"
+    },
+    {
+      "code": 6021,
+      "name": "InvalidFeeBps",
+      "msg": "Invalid configuration: fee bps exceeds 10000"
+    },
+    {
+      "code": 6022,
+      "name": "InvalidFeeBounds",
+      "msg": "Invalid configuration: min fee exceeds max fee"
+    },
+    {
+      "code": 6023,
+      "name": "InvalidSwapFeeBounds",
+      "msg": "Invalid configuration: swap fee exceeds swap max fee"
+    },
+    {
+      "code": 6024,
+      "name": "InvalidAddress",
+      "msg": "Invalid configuration: zero address"
+    },
+    {
+      "code": 6025,
+      "name": "InsufficientVaultBalance",
+      "msg": "Vault lamport balance is insufficient for the requested sweep"
+    }
+  ],
+  "types": [
+    {
+      "name": "CollectionEvent",
+      "docs": [
+        "Emitted by every successful collector action so off-chain services can",
+        "reconcile execution vs vault balance without parsing log text."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "action",
+            "docs": [
+              "One of `ACTION_CLOSE_EMPTY`, `ACTION_BURN_AND_CLOSE`, `ACTION_SWAP_AND_CLOSE`."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "token_amount",
+            "docs": [
+              "Tokens removed from the account (burned or swapped). 0 for close_empty."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "rent_recovered",
+            "docs": [
+              "Lamports recovered from closing the ATA."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "protocol_fee",
+            "docs": [
+              "Lamports paid to the protocol vault."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "swap_input",
+            "docs": [
+              "For swap_and_close: input token amount. 0 otherwise."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "swap_output",
+            "docs": [
+              "For swap_and_close: output token amount. 0 otherwise."
+            ],
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Config",
+      "docs": [
+        "Protocol-wide configuration, stored at PDA `[\"config\"]`.",
+        "",
+        "Fee settings are admin-controlled and intentionally conservative:",
+        "every on-chain fee is bounded by BOTH the protocol maximum and the",
+        "per-transaction maximum the user signs for."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "docs": [
+              "Admin who can update the config."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "protocol_vault",
+            "docs": [
+              "Vault that receives protocol fees."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "close_fee_bps",
+            "docs": [
+              "Fee on rent recovery, in bps (10_000 == 100%)."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "close_min_fee_lamports",
+            "docs": [
+              "Floor for the close fee, in lamports."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "close_max_fee_lamports",
+            "docs": [
+              "Ceiling for the close fee, in lamports."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "swap_fee_bps",
+            "docs": [
+              "Fee on swap value, in bps (10_000 == 100%)."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "swap_max_fee_bps",
+            "docs": [
+              "Absolute ceiling for the swap platform fee, in bps."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "jupiter_program",
+            "docs": [
+              "Jupiter program the protocol will CPI into."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "paused",
+            "docs": [
+              "When true, all collector operations fail."
+            ],
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "docs": [
+              "PDA bump."
+            ],
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "InitConfigArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "close_fee_bps",
+            "type": "u16"
+          },
+          {
+            "name": "close_min_fee_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "close_max_fee_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "swap_fee_bps",
+            "type": "u16"
+          },
+          {
+            "name": "swap_max_fee_bps",
+            "type": "u16"
+          },
+          {
+            "name": "jupiter_program",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ProtocolStats",
+      "docs": [
+        "Protocol-wide aggregate statistics, stored at PDA `[b\"stats\"]`.",
+        "",
+        "Only SOL-denominated values are aggregated. Token amounts and swap fees are",
+        "deliberately omitted because different mints and decimals cannot be added",
+        "into a meaningful or trustworthy global value without an oracle."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "successful_operations",
+            "type": "u64"
+          },
+          {
+            "name": "successful_closes",
+            "type": "u64"
+          },
+          {
+            "name": "successful_burns",
+            "type": "u64"
+          },
+          {
+            "name": "successful_swaps",
+            "type": "u64"
+          },
+          {
+            "name": "total_rent_recovered_lamports",
+            "docs": [
+              "Lamports returned by successfully closed token accounts."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "total_close_fees_lamports",
+            "docs": [
+              "Lamport-denominated close fees paid into the protocol vault."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "last_updated_slot",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SerializedAccountMeta",
+      "docs": [
+        "Serialized account meta, mirroring `solana_sdk::instruction::AccountMeta`",
+        "but borsh-encodable so it can travel inside instruction data."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "pubkey",
+            "type": "pubkey"
+          },
+          {
+            "name": "is_signer",
+            "type": "bool"
+          },
+          {
+            "name": "is_writable",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SerializedInstruction",
+      "docs": [
+        "A raw instruction (as returned by Jupiter's Swap V2 /build) that the",
+        "program will re-invoke as a CPI."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "program_id",
+            "type": "pubkey"
+          },
+          {
+            "name": "accounts",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "SerializedAccountMeta"
+                }
+              }
+            }
+          },
+          {
+            "name": "data",
+            "type": "bytes"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SwapArgs",
+      "docs": [
+        "User-signed swap authorization. The user's signature on these fields IS the",
+        "fee ceiling: even a compromised planner cannot exceed them."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "in_amount",
+            "docs": [
+              "Authorized source amount (must equal the live source balance)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "minimum_output",
+            "docs": [
+              "Minimum output the user accepts (post-fee), in output token units."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "platform_fee_bps",
+            "docs": [
+              "Platform fee the user authorizes, in bps."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "user_max_fee_bps",
+            "docs": [
+              "User's own ceiling on the fee, in bps (must be <= config.swap_max_fee_bps too)."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "user_max_fee_amount",
+            "docs": [
+              "Absolute fee cap in input token units: ceil(in_amount * bps / 10000) must be <= this."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "setup_instructions",
+            "docs": [
+              "Jupiter /build instructions to forward as CPIs (setup, swap, cleanup)."
+            ],
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "SerializedInstruction"
+                }
+              }
+            }
+          },
+          {
+            "name": "swap_instruction",
+            "type": {
+              "defined": {
+                "name": "SerializedInstruction"
+              }
+            }
+          },
+          {
+            "name": "cleanup_instruction",
+            "type": {
+              "option": {
+                "defined": {
+                  "name": "SerializedInstruction"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "SweepEvent",
+      "docs": [
+        "Emitted when the admin sweeps accumulated protocol fees out of a",
+        "vault-owned fee account into an admin token account (sweep_vault).",
+        "`amount` is the token balance moved; `lamports` is the SOL moved from the",
+        "vault PDA to the admin wallet (0 when the SOL part was skipped)."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "destination",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "lamports",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "UpdateConfigArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "protocol_vault",
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "close_fee_bps",
+            "type": {
+              "option": "u16"
+            }
+          },
+          {
+            "name": "close_min_fee_lamports",
+            "type": {
+              "option": "u64"
+            }
+          },
+          {
+            "name": "close_max_fee_lamports",
+            "type": {
+              "option": "u64"
+            }
+          },
+          {
+            "name": "swap_fee_bps",
+            "type": {
+              "option": "u16"
+            }
+          },
+          {
+            "name": "swap_max_fee_bps",
+            "type": {
+              "option": "u16"
+            }
+          },
+          {
+            "name": "jupiter_program",
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "paused",
+            "type": {
+              "option": "bool"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

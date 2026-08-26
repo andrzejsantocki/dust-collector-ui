@@ -1,6 +1,10 @@
 name = "tidify-rpc"
 main = "src/index.ts"
 compatibility_date = "2026-08-26"
+workers_dev = true
+routes = [
+  { pattern = "api.tidify.xyz", zone_name = "tidify.xyz", custom_domain = true }
+]
 
 [observability]
 enabled = true

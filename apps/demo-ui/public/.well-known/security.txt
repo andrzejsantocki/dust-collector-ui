@@ -1,0 +1,7 @@
+# Tidify security contact — Solana program + web app
+# Program ID (mainnet): H5ix9UP5hx3k5W3nu1rMdbDgo5Ahb9Q8RANLdoiXYCgw
+Contact: mailto:security@tidify.xyz
+Expires: 2027-08-26T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://tidify.xyz/.well-known/security.txt
+Policy: https://tidify.xyz/security.html

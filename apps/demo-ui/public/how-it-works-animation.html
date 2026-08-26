@@ -1,0 +1,691 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tidify — How it works</title>
+<style>
+  @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap");
+
+  :root {
+    --bg-deep: #1d1f19;
+    --panel: #2c2f26;
+    --panel-line: #3a3d33;
+    --lime: #d5fb42;
+    --lime-dim: #b8da34;
+    --cream: #f3f1e9;
+    --ink: #171814;
+    --muted: #9ea197;
+    --muted-2: #767a6e;
+    --good: #7ee2a8;
+    --burn: #e58a7a;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    min-height: 100vh;
+    background: #262821;
+    color: var(--cream);
+    font-family: "Inter", system-ui, sans-serif;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+  }
+
+  .stage {
+    position: relative;
+    width: min(100vw, 100vh * 16 / 9);
+    aspect-ratio: 16 / 9;
+    background:
+      radial-gradient(circle at 82% 12%, rgba(213, 251, 66, 0.07), transparent 34%),
+      radial-gradient(circle at 12% 88%, rgba(213, 251, 66, 0.05), transparent 30%),
+      var(--bg-deep);
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 40px 90px rgba(0, 0, 0, 0.45);
+    user-select: none;
+  }
+
+  .stage::before {
+    content: "";
+    position: absolute;
+    width: 46%;
+    aspect-ratio: 1;
+    border: 1px solid rgba(213, 251, 66, 0.14);
+    border-radius: 48% 52% 60% 40%;
+    top: -24%;
+    right: -12%;
+    transform: rotate(22deg);
+    box-shadow: 0 0 0 60px rgba(213, 251, 66, 0.02), 0 0 0 120px rgba(213, 251, 66, 0.014);
+    pointer-events: none;
+  }
+
+  .stage::after {
+    content: "";
+    position: absolute;
+    width: 30%;
+    aspect-ratio: 1;
+    background: var(--lime);
+    filter: blur(130px);
+    opacity: 0.08;
+    bottom: -18%;
+    left: 6%;
+    pointer-events: none;
+  }
+
+  /* ---------- brand ---------- */
+  .brand {
+    position: absolute;
+    top: 26px;
+    left: 30px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 20;
+  }
+  .brand-mark {
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    background: var(--lime);
+    border: 1px solid var(--ink);
+    border-radius: 9px;
+    font: 800 15px Manrope, sans-serif;
+    color: var(--ink);
+    letter-spacing: -0.08em;
+    transform: rotate(-3deg);
+  }
+  .brand-name { font: 800 15px Manrope, sans-serif; letter-spacing: -0.02em; }
+  .brand-name small {
+    display: block;
+    margin-top: 2px;
+    font: 600 9px Inter, sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--muted-2);
+  }
+
+  .replay {
+    position: absolute;
+    top: 26px;
+    right: 30px;
+    z-index: 20;
+    height: 38px;
+    padding: 0 16px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid var(--panel-line);
+    border-radius: 10px;
+    background: rgba(44, 47, 38, 0.7);
+    color: var(--muted);
+    font: 600 11px Inter, sans-serif;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.3s ease, border-color 0.2s ease, color 0.2s ease;
+  }
+  .replay.show { opacity: 1; }
+  .replay:hover { border-color: var(--lime-dim); color: var(--cream); }
+  .replay svg { width: 13px; height: 13px; }
+
+  /* ---------- SVG scene ---------- */
+  .scene { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+  .eyebrow { font: 600 11px Inter, sans-serif; letter-spacing: 0.22em; text-transform: uppercase; fill: var(--lime); }
+  .title { font: 800 clamp(26px, 3.8vw, 52px) Manrope, sans-serif; letter-spacing: -0.04em; fill: var(--cream); }
+  .title em { fill: var(--lime); font-style: normal; }
+  .subtitle { font: 400 15px/1.5 Inter, sans-serif; fill: var(--muted); }
+
+  .wallet-body { fill: var(--panel); stroke: var(--panel-line); stroke-width: 1.5; }
+  .wallet-glow { fill: none; stroke: rgba(213, 251, 66, 0.28); stroke-width: 1.5; }
+  .wallet-label { font: 700 12px Inter, sans-serif; letter-spacing: 0.04em; fill: var(--muted-2); text-transform: uppercase; }
+  .wallet-balance { font: 800 30px Manrope, sans-serif; letter-spacing: -0.03em; fill: var(--cream); }
+  .wallet-balance small { font: 600 13px Inter, sans-serif; letter-spacing: 0.02em; fill: var(--muted); }
+
+  /* token chip = name + USD value on one pill */
+  .chip-body { fill: #363a30; stroke: #464b3e; stroke-width: 1.2; }
+  .chip-name { font: 700 11px Inter, sans-serif; fill: var(--cream); }
+  .chip-value { font: 700 11px Inter, sans-serif; fill: var(--lime); }
+
+  .beam-line { stroke: var(--lime); stroke-width: 2.5; }
+  .beam-glow { fill: url(#beamGrad); }
+
+  .badge-pill { stroke-width: 1.4; }
+  .badge-text { font: 700 10px Inter, sans-serif; letter-spacing: 0.08em; }
+  .badge-swap .badge-pill { fill: #2f3d33; stroke: var(--good); }
+  .badge-swap .badge-text { fill: var(--good); }
+  .badge-burn .badge-pill { fill: #40302c; stroke: var(--burn); }
+  .badge-burn .badge-text { fill: var(--burn); }
+  .badge-close .badge-pill { fill: #33382e; stroke: var(--lime); }
+  .badge-close .badge-text { fill: var(--lime); }
+
+  .approve-pill { fill: #262b22; stroke: var(--panel-line); stroke-width: 1.4; }
+  .approve-label { font: 700 12px Inter, sans-serif; fill: var(--cream); }
+  .approve-count { font: 800 20px Manrope, sans-serif; fill: var(--lime); letter-spacing: -0.02em; }
+  .btn-body { fill: var(--lime); }
+  .btn-text { font: 800 12px Manrope, sans-serif; fill: var(--ink); }
+  .check path { stroke: var(--ink); }
+
+  .counter-pill { fill: #30341f; stroke: #4c5337; stroke-width: 1.3; }
+  .counter-value { font: 800 32px Manrope, sans-serif; fill: var(--lime); letter-spacing: -0.03em; }
+  .counter-label { font: 600 10px Inter, sans-serif; letter-spacing: 0.14em; fill: var(--muted); }
+
+  .caption-text { font: 600 15px Inter, sans-serif; fill: var(--muted); letter-spacing: 0.01em; }
+  .caption-text strong { font-weight: 700; fill: var(--cream); }
+
+  .progress {
+    position: absolute;
+    bottom: 20px;
+    right: 30px;
+    display: flex;
+    gap: 7px;
+    z-index: 20;
+  }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: #3c4036; transition: background 0.25s ease, transform 0.25s ease; }
+  .dot.on { background: var(--lime); transform: scale(1.15); }
+
+  /* ----------------------------------------------------------------
+     ANIMATION SYSTEM
+     - All CSS animations PAUSED until .playing is added (JS master switch).
+     - Elements with a transform ATTRIBUTE animate the CSS `translate`
+       property (composes with the attribute) — never `transform`.
+     - Timeline is 2× slower than the original design.
+  ---------------------------------------------------------------- */
+
+  .stage:not(.playing) .scene g,
+  .stage:not(.playing) .scene text,
+  .stage:not(.playing) .scene rect,
+  .stage:not(.playing) .scene circle,
+  .stage:not(.playing) .scene line,
+  .stage:not(.playing) .scene path {
+    animation-play-state: paused;
+  }
+  .stage.playing .scene g,
+  .stage.playing .scene text,
+  .stage.playing .scene rect,
+  .stage.playing .scene circle,
+  .stage.playing .scene line,
+  .stage.playing .scene path {
+    animation-play-state: running;
+  }
+
+  .gone { opacity: 0 !important; transition: opacity 0.9s ease; }
+
+  /* ACT 0 — title */
+  @keyframes titleIn {
+    0% { opacity: 0; transform: translateY(24px) scale(0.98); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .title-group { opacity: 0; animation: titleIn 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both; }
+  .title-group .eyebrow { animation: titleIn 0.8s ease-out 0.3s both; }
+  .title-group .title { animation: titleIn 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.55s both; }
+  .title-group .subtitle { animation: titleIn 0.8s ease-out 0.95s both; }
+
+  /* ACT 1 — wallet + dust */
+  @keyframes walletIn {
+    0% { opacity: 0; transform: translateY(30px) scale(0.95); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .wallet-card { opacity: 0; animation: walletIn 1.0s cubic-bezier(0.22, 1, 0.36, 1) 2.0s both; }
+
+  @keyframes dustFade {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+  .dust { opacity: 0; animation: dustFade 0.5s ease 2.3s both; }
+
+  @keyframes chipIn {
+    0% { opacity: 0; translate: 0 30px; }
+    60% { opacity: 1; translate: 0 -6px; }
+    100% { opacity: 1; translate: 0 0; }
+  }
+  .dust-chip { opacity: 0; }
+  .dust-chip:nth-child(1) { animation: chipIn 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) 2.4s both; }
+  .dust-chip:nth-child(2) { animation: chipIn 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) 2.66s both; }
+  .dust-chip:nth-child(3) { animation: chipIn 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) 2.92s both; }
+  .dust-chip:nth-child(4) { animation: chipIn 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) 3.18s both; }
+  .dust-chip:nth-child(5) { animation: chipIn 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) 3.44s both; }
+
+  /* ACT 2 — scan (slow sweep) */
+  @keyframes beamSweep {
+    0% { translate: -460px 0; }
+    100% { translate: 460px 0; }
+  }
+  .beam { opacity: 0; animation: beamSweep 3.4s cubic-bezier(0.45, 0, 0.55, 1) 4.3s both; }
+
+  @keyframes hitPulse {
+    0% { filter: drop-shadow(0 0 0 rgba(213, 251, 66, 0)); }
+    35% { filter: drop-shadow(0 0 10px rgba(213, 251, 66, 0.85)); }
+    100% { filter: drop-shadow(0 0 0 rgba(213, 251, 66, 0)); }
+  }
+  .dust-chip.hit-1 { animation: hitPulse 1.2s ease 4.8s both, chipIn 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) 2.4s both; }
+  .dust-chip.hit-2 { animation: hitPulse 1.2s ease 5.3s both, chipIn 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) 2.66s both; }
+  .dust-chip.hit-3 { animation: hitPulse 1.2s ease 5.8s both, chipIn 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) 2.92s both; }
+  .dust-chip.hit-4 { animation: hitPulse 1.2s ease 6.3s both, chipIn 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) 3.18s both; }
+  .dust-chip.hit-5 { animation: hitPulse 1.2s ease 6.8s both, chipIn 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) 3.44s both; }
+
+  /* ACT 3 — action badges */
+  @keyframes tagPop {
+    0% { opacity: 0; translate: 0 12px; }
+    70% { opacity: 1; translate: 0 -2px; }
+    100% { opacity: 1; translate: 0 0; }
+  }
+  .action-badge { opacity: 0; }
+  .action-badge:nth-child(1) { animation: tagPop 0.7s cubic-bezier(0.22, 1, 0.36, 1) 9.2s both; }
+  .action-badge:nth-child(2) { animation: tagPop 0.7s cubic-bezier(0.22, 1, 0.36, 1) 9.5s both; }
+  .action-badge:nth-child(3) { animation: tagPop 0.7s cubic-bezier(0.22, 1, 0.36, 1) 9.8s both; }
+  .action-badge:nth-child(4) { animation: tagPop 0.7s cubic-bezier(0.22, 1, 0.36, 1) 10.1s both; }
+  .action-badge:nth-child(5) { animation: tagPop 0.7s cubic-bezier(0.22, 1, 0.36, 1) 10.4s both; }
+
+  /* ACT 4 — approve */
+  @keyframes approveIn {
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  .approve-row { opacity: 0; animation: approveIn 0.9s cubic-bezier(0.22, 1, 0.36, 1) 11.6s both; }
+  .approve-btn { opacity: 0; animation: tagPop 0.8s cubic-bezier(0.22, 1, 0.36, 1) 12.2s both; }
+
+  @keyframes checkDraw {
+    0% { opacity: 0; }
+    40% { opacity: 1; }
+    100% { opacity: 1; }
+  }
+  .check { opacity: 0; animation: checkDraw 0.7s ease 13.0s both; }
+
+  /* ACT 5 — counter + balance rise */
+  @keyframes counterUp {
+    0% { opacity: 0; translate: 0 14px; }
+    100% { opacity: 1; translate: 0 0; }
+  }
+  .counter { opacity: 0; animation: counterUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) 15.0s both; }
+
+  /* captions — one at a time; JS fades the previous out */
+  @keyframes capIn {
+    0% { opacity: 0; transform: translateY(14px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  .caption { opacity: 0; }
+  .caption.cap-1 { animation: capIn 0.8s ease-out 1.5s both; }
+  .caption.cap-2 { animation: capIn 0.8s ease-out 4.0s both; }
+  .caption.cap-3 { animation: capIn 0.8s ease-out 7.6s both; }
+  .caption.cap-4 { animation: capIn 0.8s ease-out 10.3s both; }
+  .caption.cap-5 { animation: capIn 0.8s ease-out 12.9s both; }
+  .caption.cap-6 { animation: capIn 0.8s ease-out 15.9s both; }
+
+  /* ---------- reduced motion ---------- */
+  @media (prefers-reduced-motion: reduce) {
+    .stage .scene * { animation: none !important; }
+    .title-group, .wallet-card, .dust, .dust-chip, .beam,
+    .action-badge, .approve-row, .approve-btn, .check,
+    .counter, .caption {
+      opacity: 1 !important;
+      transform: none !important;
+      translate: none !important;
+    }
+    .replay { display: none; }
+  }
+
+  /* ---------- show-all mode (button + ?all=1) ---------- */
+  .stage.show-all .scene * { animation: none !important; }
+  .stage.show-all .title-group,
+  .stage.show-all .wallet-card,
+  .stage.show-all .dust,
+  .stage.show-all .dust-chip,
+  .stage.show-all .beam,
+  .stage.show-all .action-badge,
+  .stage.show-all .approve-row,
+  .stage.show-all .approve-btn,
+  .stage.show-all .check,
+  .stage.show-all .counter,
+  .stage.show-all .caption {
+    opacity: 1 !important;
+    transform: none !important;
+    translate: none !important;
+  }
+  .stage.show-all .beam,
+  .stage.show-all .caption.cap-1,
+  .stage.show-all .caption.cap-2,
+  .stage.show-all .caption.cap-3,
+  .stage.show-all .caption.cap-4,
+  .stage.show-all .caption.cap-5,
+  .stage.show-all .caption.cap-6 {
+    opacity: 0 !important;
+  }
+
+  /* ---------- mobile: keep SVG text readable when the stage shrinks ---------- */
+  @media (max-width: 720px) {
+    html, body { overflow: hidden; }
+    .stage { border-radius: 14px; }
+    .brand { top: 14px; left: 14px; }
+    .brand-mark { width: 28px; height: 28px; font-size: 13px; }
+    .brand-name { font-size: 13px; }
+    .brand-name small { display: none; }
+    .replay { top: 14px; right: 14px; height: 34px; padding: 0 12px; }
+    .eyebrow { font-size: 14px; }
+    .title { font-size: 40px; }
+    .subtitle { font-size: 19px; }
+    .wallet-label { font-size: 14px; }
+    .wallet-balance { font-size: 34px; }
+    .chip-name, .chip-value { font-size: 15px; }
+    .badge-text { font-size: 13px; }
+    .approve-label { font-size: 14px; }
+    .approve-count { font-size: 22px; }
+    .btn-text { font-size: 14px; }
+    .counter-value { font-size: 36px; }
+    .counter-label { font-size: 12px; }
+    .caption-text { font-size: 18px; }
+    .progress { bottom: 12px; right: 14px; }
+    .dot { width: 6px; height: 6px; }
+  }
+</style>
+</head>
+<body>
+  <div class="stage" id="stage">
+    <div class="brand">
+      <div class="brand-mark">tf</div>
+      <div class="brand-name">Tidify<small>Solana token cleanup</small></div>
+    </div>
+
+    <button class="replay" id="replay" title="Show all tokens at once" aria-label="Show all tokens at once">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2.5 8a5.5 5.5 0 1 0 1.6-3.9" />
+        <path d="M2.5 1.5v3.4h3.4" />
+      </svg>
+      Show all
+    </button>
+
+    <svg class="scene" viewBox="0 0 960 540" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+      <defs>
+        <linearGradient id="beamGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#d5fb42" stop-opacity="0" />
+          <stop offset="50%" stop-color="#d5fb42" stop-opacity="0.14" />
+          <stop offset="100%" stop-color="#d5fb42" stop-opacity="0" />
+        </linearGradient>
+      </defs>
+
+      <!-- ACT 0: title -->
+      <g class="title-group">
+        <text class="eyebrow" x="90" y="150">HOW TIDIFY WORKS</text>
+        <text class="title" x="88" y="205">Dust out. <tspan fill="#d5fb42">SOL back.</tspan></text>
+        <text class="subtitle" x="90" y="240">Small balances hiding in your wallet —<tspan x="90" dy="22">recovered in one approved batch.</tspan></text>
+      </g>
+
+      <!-- ACT 1: wallet -->
+      <g class="wallet-card">
+        <rect class="wallet-glow" x="488" y="258" width="360" height="190" rx="26" />
+        <rect class="wallet-body" x="500" y="270" width="360" height="190" rx="22" />
+        <text class="wallet-label" x="532" y="304">Wallet</text>
+        <text class="wallet-balance" id="walletBalance" x="530" y="340">1.24 <tspan>SOL</tspan></text>
+        <text class="wallet-label" id="walletDustLabel" x="532" y="428">+ 5 dust accounts</text>
+      </g>
+
+      <!-- dust chips — name + USD value on one pill, clear of the title -->
+      <g class="dust">
+        <g class="dust-chip hit-1" transform="translate(270,330)">
+          <rect class="chip-body" x="-62" y="-16" width="124" height="32" rx="16" />
+          <text class="chip-name" x="-34" y="5" text-anchor="middle">TRUMP</text>
+          <text class="chip-value" x="36" y="5" text-anchor="middle">$2.10</text>
+        </g>
+        <g class="dust-chip hit-2" transform="translate(770,130)">
+          <rect class="chip-body" x="-70" y="-16" width="140" height="32" rx="16" />
+          <text class="chip-name" x="-38" y="5" text-anchor="middle">CYBERLEEK</text>
+          <text class="chip-value" x="40" y="5" text-anchor="middle">$0.83</text>
+        </g>
+        <g class="dust-chip hit-3" transform="translate(560,140)">
+          <rect class="chip-body" x="-50" y="-16" width="100" height="32" rx="16" />
+          <text class="chip-name" x="-20" y="5" text-anchor="middle">PUMP</text>
+          <text class="chip-value" x="28" y="5" text-anchor="middle">$0.00</text>
+        </g>
+        <g class="dust-chip hit-4" transform="translate(890,250)">
+          <rect class="chip-body" x="-44" y="-16" width="88" height="32" rx="16" />
+          <text class="chip-name" x="-14" y="5" text-anchor="middle">CATE</text>
+          <text class="chip-value" x="26" y="5" text-anchor="middle">$0.00</text>
+        </g>
+        <g class="dust-chip hit-5" transform="translate(890,420)">
+          <rect class="chip-body" x="-46" y="-16" width="92" height="32" rx="16" />
+          <text class="chip-name" x="-16" y="5" text-anchor="middle">BONK</text>
+          <text class="chip-value" x="28" y="5" text-anchor="middle">$0.41</text>
+        </g>
+      </g>
+
+      <!-- ACT 2: scan beam -->
+      <g class="beam">
+        <rect class="beam-glow" x="470" y="120" width="60" height="380" />
+        <line class="beam-line" x1="500" y1="120" x2="500" y2="500" />
+      </g>
+
+      <!-- ACT 3: action badges — honest: swap / burn / close mix -->
+      <g class="badge-group">
+        <g class="action-badge badge-swap" transform="translate(270,414)">
+          <rect class="badge-pill" x="-44" y="-14" width="88" height="28" rx="14" />
+          <text class="badge-text" x="0" y="4" text-anchor="middle">SWAP</text>
+        </g>
+        <g class="action-badge badge-swap" transform="translate(770,214)">
+          <rect class="badge-pill" x="-44" y="-14" width="88" height="28" rx="14" />
+          <text class="badge-text" x="0" y="4" text-anchor="middle">SWAP</text>
+        </g>
+        <g class="action-badge badge-burn" transform="translate(560,224)">
+          <rect class="badge-pill" x="-44" y="-14" width="88" height="28" rx="14" />
+          <text class="badge-text" x="0" y="4" text-anchor="middle">BURN</text>
+        </g>
+        <g class="action-badge badge-burn" transform="translate(890,334)">
+          <rect class="badge-pill" x="-44" y="-14" width="88" height="28" rx="14" />
+          <text class="badge-text" x="0" y="4" text-anchor="middle">BURN</text>
+        </g>
+        <g class="action-badge badge-close" transform="translate(890,504)">
+          <rect class="badge-pill" x="-50" y="-14" width="100" height="28" rx="14" />
+          <text class="badge-text" x="0" y="4" text-anchor="middle">CLOSE</text>
+        </g>
+      </g>
+
+      <!-- ACT 4: approve -->
+      <g class="approve-row">
+        <rect class="approve-pill" x="340" y="460" width="250" height="52" rx="26" />
+        <circle cx="368" cy="486" r="12" fill="#3c412f" stroke="#4c5337" stroke-width="1.4" />
+        <text class="approve-label" x="390" y="491">Approve</text>
+        <text class="approve-count" x="470" y="491">5</text>
+        <text class="approve-label" x="492" y="491">accounts</text>
+      </g>
+      <g class="approve-btn" transform="translate(660,486)">
+        <rect class="btn-body" x="-62" y="-21" width="124" height="42" rx="21" />
+        <text class="btn-text" x="0" y="5" text-anchor="middle">Sign batch</text>
+        <g class="check" transform="translate(52,-6)">
+          <path d="M -6 0 l 4 4 l 8 -9" fill="none" stroke="#171814" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
+        </g>
+      </g>
+
+      <!-- ACT 5: counter inside the wallet -->
+      <g class="counter" transform="translate(760,350)">
+        <rect class="counter-pill" x="-80" y="-34" width="160" height="68" rx="16" />
+        <text class="counter-label" x="0" y="-10" text-anchor="middle">RECOVERED</text>
+        <text class="counter-value" id="counterValue" x="0" y="22" text-anchor="middle">+0.48</text>
+      </g>
+
+      <!-- captions — one at a time, bottom-left -->
+      <g class="caption cap-1">
+        <text class="caption-text" x="60" y="500">Scattered dust hides in your wallet</text>
+      </g>
+      <g class="caption cap-2">
+        <text class="caption-text" x="60" y="500">Tidify <tspan fill="#d5fb42" font-weight="700">scans</tspan> every token account</text>
+      </g>
+      <g class="caption cap-3">
+        <text class="caption-text" x="60" y="500">Each balance priced — <tspan fill="#d5fb42">swap</tspan> · <tspan fill="#e58a7a">burn</tspan> · <tspan fill="#d5fb42">close</tspan></text>
+      </g>
+      <g class="caption cap-4">
+        <text class="caption-text" x="60" y="500">Not everything is swappable — you decide</text>
+      </g>
+      <g class="caption cap-5">
+        <text class="caption-text" x="60" y="500">One signature. One batch.</text>
+      </g>
+      <g class="caption cap-6">
+        <text class="caption-text" x="60" y="500">Rent and value return to <tspan fill="#d5fb42" font-weight="700">your</tspan> wallet</text>
+      </g>
+    </svg>
+
+    <div class="progress" id="progress">
+      <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  var stage = document.getElementById("stage");
+  var replayBtn = document.getElementById("replay");
+  var counterEl = document.getElementById("counterValue");
+  var walletBalance = document.getElementById("walletBalance");
+  var walletDustLabel = document.getElementById("walletDustLabel");
+  var dots = Array.prototype.slice.call(document.querySelectorAll(".dot"));
+
+  var prefersReduced = window.matchMedia &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // Timeline (seconds), 2× slower. Total ≈ 24s, then a short hold.
+  var counterStart = 15.2;
+  var counterEnd = 17.6;
+  var counterTarget = 0.48;
+  var balanceStart = 18.0;      // wallet balance count-up
+  var balanceEnd = 21.0;
+  var TOTAL = 24.0;
+
+  var rafId = null;
+  var startTime = 0;
+  var running = false;
+
+  var ACT_END = [1.5, 4.0, 7.6, 10.3, 12.9, 15.9, 24.0];
+
+  // Phase changes: fade each act's objects out before the next lands.
+  var phaseFns = [
+    { t: 9.2, fn: function () { document.querySelector(".beam").classList.add("gone"); } },
+    { t: 13.5, fn: function () {
+        document.querySelector(".dust").classList.add("gone");
+        document.querySelector(".badge-group").classList.add("gone");
+      } },
+    { t: 21.0, fn: function () {
+        walletDustLabel.textContent = "dust recovered";
+      } }
+  ];
+  var fired = [];
+
+  // Captions replace each other (cap-6 stays for the ending)
+  var capFades = [
+    { t: 3.9, cap: 1 }, { t: 7.5, cap: 2 }, { t: 10.2, cap: 3 },
+    { t: 12.8, cap: 4 }, { t: 15.8, cap: 5 }
+  ];
+  var capFired = [];
+
+  function tick(now) {
+    var t = (now - startTime) / 1000;
+
+    // recovered counter
+    if (t >= counterStart && t <= counterEnd) {
+      var p = Math.min(1, (t - counterStart) / (counterEnd - counterStart));
+      var eased = 1 - Math.pow(1 - p, 3);
+      counterEl.textContent = "+" + (counterTarget * eased).toFixed(2);
+    }
+
+    // wallet balance counts up dynamically (1.24 → 1.72)
+    if (t >= balanceStart && t <= balanceEnd) {
+      var bp = Math.min(1, (t - balanceStart) / (balanceEnd - balanceStart));
+      var beased = 1 - Math.pow(1 - bp, 3);
+      var bal = (1.24 + counterTarget * beased).toFixed(2);
+      walletBalance.innerHTML = bal + " <tspan>SOL</tspan>";
+    }
+
+    for (var i = 0; i < phaseFns.length; i++) {
+      if (!fired[i] && t >= phaseFns[i].t) {
+        fired[i] = true;
+        phaseFns[i].fn();
+      }
+    }
+    for (var j = 0; j < capFades.length; j++) {
+      if (!capFired[j] && t >= capFades[j].t) {
+        capFired[j] = true;
+        document.querySelector(".caption.cap-" + capFades[j].cap).classList.add("gone");
+      }
+    }
+
+    for (var k = 0; k < dots.length; k++) {
+      dots[k].classList.toggle("on", t >= (k === 0 ? 0 : ACT_END[k - 1]) - 0.1);
+    }
+
+    if (t < TOTAL) {
+      rafId = requestAnimationFrame(tick);
+    } else {
+      replayBtn.classList.add("show");
+      running = false;
+      rafId = null;
+    }
+  }
+
+  // Show-all mode: no animation, every token visible at once.
+  function showAll() {
+    stage.classList.add("show-all");
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = null;
+    running = false;
+    counterEl.textContent = "+0.48";
+    walletBalance.innerHTML = "1.72 <tspan>SOL</tspan>";
+    walletDustLabel.textContent = "dust recovered";
+    replayBtn.classList.remove("show");
+    replayBtn.textContent = "Show all";
+  }
+
+  function start() {
+    if (prefersReduced) {
+      stage.classList.add("playing");
+      replayBtn.classList.remove("show");
+      return;
+    }
+    if (running) return;
+
+    stage.classList.remove("show-all");
+    var gones = stage.querySelectorAll(".gone");
+    for (var i = 0; i < gones.length; i++) gones[i].classList.remove("gone");
+    counterEl.textContent = "+0.00";
+    walletBalance.innerHTML = "1.24 <tspan>SOL</tspan>";
+    walletDustLabel.textContent = "+ 5 dust accounts";
+    fired = [];
+    capFired = [];
+
+    stage.classList.remove("playing");
+    void stage.offsetWidth;
+    stage.classList.add("playing");
+    replayBtn.classList.remove("show");
+
+    startTime = performance.now();
+    running = true;
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(tick);
+  }
+
+  // Replay button shows all tokens at once (never replays from the start)
+  replayBtn.addEventListener("click", showAll);
+
+  if (window.location.search.indexOf("all=1") !== -1) {
+    window.addEventListener("load", function () { setTimeout(showAll, 100); });
+  } else {
+    document.addEventListener("visibilitychange", function () {
+      if (document.hidden) {
+        if (rafId) cancelAnimationFrame(rafId);
+        rafId = null;
+      } else if (running) {
+        start();
+      }
+    });
+    window.addEventListener("load", function () {
+      setTimeout(start, 250);
+    });
+  }
+})();
+</script>
+</body>
+</html>
