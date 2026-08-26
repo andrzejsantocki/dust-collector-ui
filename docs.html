@@ -4,105 +4,264 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="index, follow" />
-    <meta name="description" content="Tidify protocol documentation: program address, on-chain fee configuration, token support, and how the recovery preview works." />
+    <meta name="description" content="Tidify protocol documentation: program address, verifiable on-chain fees, token support, and a real mainnet transaction walkthrough." />
     <link rel="canonical" href="https://tidify.xyz/docs.html" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Tidify" />
     <meta property="og:title" content="Tidify Docs" />
-    <meta property="og:description" content="Program address, fees, token support, and how the Tidify recovery preview works." />
+    <meta property="og:description" content="Program address, verifiable on-chain fees, token support, and a real mainnet transaction walkthrough." />
     <meta property="og:url" content="https://tidify.xyz/docs.html" />
     <link rel="icon" href="./favicon.svg" />
     <title>Tidify Docs</title>
     <style>
       :root { color-scheme: light; font-family: "DM Sans", Arial, sans-serif; color: #171814; background: #f3f1e9; }
       body { margin: 0; min-height: 100vh; background: radial-gradient(circle at 12% 5%, #fcfbf6 0, transparent 32%), #f3f1e9; }
-      main { width: min(760px, calc(100% - 40px)); margin: 40px auto 60px; }
+      .layout { display: grid; grid-template-columns: 230px minmax(0, 760px); gap: 40px; width: min(1080px, calc(100% - 40px)); margin: 0 auto; padding: 40px 0 60px; }
       a { color: #5d6d0e; }
-      h1 { font-size: 34px; margin: 8px 0 4px; }
-      h2 { font-size: 20px; margin: 34px 0 8px; border-bottom: 1px solid #d4d1c7; padding-bottom: 6px; }
-      p, li { font-size: 15px; line-height: 1.6; color: #3c3d36; }
+      /* Left pane: section navigation */
+      .toc { position: sticky; top: 24px; align-self: start; border: 1px solid #d4d1c7; border-radius: 12px; background: #fbfaf5; padding: 18px 16px; }
+      .toc .badge { display: inline-block; background: #d5fb42; color: #171814; font-weight: 700; padding: 3px 9px; border-radius: 20px; font-size: 11px; margin-bottom: 14px; }
+      .toc nav { display: flex; flex-direction: column; gap: 2px; }
+      .toc a { color: #55584f; text-decoration: none; font-size: 13px; padding: 6px 10px; border-radius: 7px; }
+      .toc a:hover, .toc a.active { background: #eef4d5; color: #4e5c17; }
+      .toc .back { display: block; margin-top: 12px; padding-top: 12px; border-top: 1px solid #e4e1d8; color: #5d6d0e; font-size: 13px; }
+      /* Main content */
+      h1 { font-size: 32px; margin: 6px 0 6px; }
+      .sub { color: #55584f; font-size: 15px; margin: 0 0 24px; }
+      h2 { font-size: 21px; margin: 42px 0 10px; padding-bottom: 8px; border-bottom: 1px solid #d4d1c7; }
+      h3 { font-size: 16px; margin: 22px 0 6px; }
+      p, li { font-size: 15px; line-height: 1.65; color: #3c3d36; }
       code { background: #e8e6dc; padding: 2px 6px; border-radius: 5px; font-size: 13px; word-break: break-all; }
-      .badge { display: inline-block; background: #d5fb42; color: #171814; font-weight: 700; padding: 4px 10px; border-radius: 20px; font-size: 12px; }
-      .back { display: inline-block; margin-bottom: 18px; color: #5d6d0e; text-decoration: none; font-size: 14px; }
-      .back:hover { text-decoration: underline; }
-      table { border-collapse: collapse; width: 100%; font-size: 14px; }
-      td, th { border: 1px solid #d4d1c7; padding: 8px 10px; text-align: left; }
+      pre { background: #20221d; color: #e8e6dc; padding: 14px 16px; border-radius: 10px; overflow-x: auto; font-size: 12.5px; line-height: 1.55; }
+      pre .dim { color: #92938c; }
+      .card { border: 1px solid #d4d1c7; border-radius: 12px; background: #fbfaf5; padding: 16px 18px; margin: 14px 0; }
+      table { border-collapse: collapse; width: 100%; font-size: 14px; margin: 12px 0; }
+      td, th { border: 1px solid #d4d1c7; padding: 9px 11px; text-align: left; vertical-align: top; }
       th { background: #e8e6dc; }
-      footer { width: min(760px, calc(100% - 40px)); margin: 0 auto 30px; color: #92938c; font-size: 12px; }
+      .fee { display: flex; justify-content: space-between; gap: 14px; }
+      .fee strong { font-size: 20px; }
+      .fee small { color: #81837b; font-size: 12px; }
+      .note { background: #eef4d5; border-left: 4px solid #d5fb42; padding: 11px 15px; border-radius: 0 8px 8px 0; font-size: 13.5px; color: #3c3d36; }
+      .step { display: flex; gap: 14px; margin: 12px 0; }
+      .step .n { flex: none; width: 26px; height: 26px; border-radius: 50%; background: #d5fb42; color: #171814; font-weight: 800; display: grid; place-items: center; font-size: 13px; }
+      .step p { margin: 2px 0 0; }
+      .badge-prog { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 700; background: #e8e6dc; color: #3c3d36; }
+      .badge-prog.tidify { background: #d5fb42; color: #171814; }
+      .badge-prog.jupiter { background: #e6e3f6; color: #4d4279; }
+      footer { width: min(1080px, calc(100% - 40px)); margin: 0 auto 30px; color: #92938c; font-size: 12px; }
+      @media (max-width: 820px) { .layout { grid-template-columns: 1fr; gap: 20px; } .toc { position: static; } .toc nav { flex-direction: row; flex-wrap: wrap; } }
     </style>
   </head>
   <body>
-    <main>
-      <a class="back" href="/">← Tidify</a>
-      <span class="badge">Docs</span>
-      <h1>Tidify protocol docs</h1>
-      <p>Tidify is a non-custodial Solana program that helps you recover usable value from small token balances (dust) by swapping, burning, or closing SPL Token and Token-2022 accounts.</p>
+    <div class="layout">
+      <aside class="toc">
+        <span class="badge">Docs</span>
+        <nav aria-label="Docs sections">
+          <a href="#overview">Overview</a>
+          <a href="#how-it-works">How it works</a>
+          <a href="#fees">Fees</a>
+          <a href="#token-support">Token support</a>
+          <a href="#example-transaction">Example transaction</a>
+          <a href="#security">Security</a>
+          <a href="#contact">Contact</a>
+        </nav>
+        <a class="back" href="/">← Back to Tidify</a>
+      </aside>
 
-      <h2>Program</h2>
-      <p>
-        Program ID: <code>H5ix9UP5hx3k5W3nu1rMdbDgo5Ahb9Q8RANLdoiXYCgw</code><br />
-        View on Orb: <a href="https://orb.helius.dev/program/H5ix9UP5hx3k5W3nu1rMdbDgo5Ahb9Q8RANLdoiXYCgw">https://orb.helius.dev/program/H5ix9UP5hx3k5W3nu1rMdbDgo5Ahb9Q8RANLdoiXYCgw</a>
-      </p>
-      <p>
-        The protocol has two derived accounts: a <strong>config</strong> PDA holding the
-        fee configuration and authorities, and a <strong>vault</strong> PDA that receives
-        protocol fees. Funds belonging to users never pass through the vault — only
-        the protocol fee does.
-      </p>
+      <main>
+        <h1>Tidify protocol docs</h1>
+        <p class="sub">A non-custodial Solana program that recovers usable value from small token balances — by swapping, burning, or closing SPL Token and Token-2022 accounts.</p>
 
-      <h2>On-chain fee configuration</h2>
-      <p>The config account is the source of truth for fees. The web app reads it before every preview and refuses to build anything when it cannot be read.</p>
-      <table>
-        <tr><th>Field</th><th>Meaning</th></tr>
-        <tr><td><code>closeFeeBps</code></td><td>Protocol fee in basis points for closing an account (bounded by the min/max in lamports).</td></tr>
-        <tr><td><code>closeMinFeeLamports</code> / <code>closeMaxFeeLamports</code></td><td>Floor and ceiling of the close fee per account.</td></tr>
-        <tr><td><code>swapFeeBps</code> / <code>swapMaxFeeBps</code></td><td>Protocol fee rate and ceiling for the swap-and-close path.</td></tr>
-        <tr><td><code>admin</code></td><td>Authority that can update the configuration.</td></tr>
-        <tr><td><code>protocolVault</code></td><td>Account that collects protocol fees.</td></tr>
-        <tr><td><code>paused</code></td><td>When paused, the app blocks transaction execution.</td></tr>
-      </table>
-      <p>
-        Fee safety: the realized fee on the swap path is enforced on-chain against
-        the user's ceiling — a route cannot take more than the maximum you approved.
-      </p>
+        <section id="overview">
+          <h2>Overview</h2>
+          <p>
+            Tidify runs entirely on Solana mainnet. The web app is a thin client:
+            it reads your token accounts, prices them, proposes an action per
+            position, and builds transactions that <em>your wallet</em> signs.
+            There is no backend and no custody — user funds never pass through a
+            Tidify-controlled account.
+          </p>
+          <div class="card">
+            <p style="margin:0 0 8px"><strong>Program ID</strong></p>
+            <code>H5ix9UP5hx3k5W3nu1rMdbDgo5Ahb9Q8RANLdoiXYCgw</code>
+            <p style="margin:10px 0 0">
+              <a href="https://orb.helius.dev/program/H5ix9UP5hx3k5W3nu1rMdbDgo5Ahb9Q8RANLdoiXYCgw" target="_blank" rel="noreferrer">View program on Orb ↗</a>
+            </p>
+          </div>
+          <p>
+            The protocol has two derived accounts: the <strong>config</strong> PDA
+            (fee configuration and authorities) and the <strong>vault</strong> PDA
+            (collects protocol fees only — never user funds). Both are derived from
+            the program ID and verifiable on-chain.
+          </p>
+        </section>
 
-      <h2>Token support</h2>
-      <ul>
-        <li><strong>SPL Token</strong> and <strong>Token-2022</strong> accounts on Solana mainnet.</li>
-        <li>Swaps require a working Jupiter route for the exact balance (small routes are preferred so transactions fit the 1232-byte wire limit).</li>
-        <li>Tokens without a usable swap route are burned only when the destroyed value is provably no greater than the cost of burning.</li>
-        <li>Non-transferable, unsupported, or unverified tokens are never swapped; they are labeled and can be closed to reclaim rent.</li>
-        <li>The selected output currency (USDC, USDT, or SOL) is never treated as dust.</li>
-      </ul>
+        <section id="how-it-works">
+          <h2>How it works</h2>
+          <div class="step"><span class="n">1</span><div><strong>Connect or paste a wallet.</strong><p>Reads every SPL Token and Token-2022 account on Solana mainnet. No signature is needed to preview.</p></div></div>
+          <div class="step"><span class="n">2</span><div><strong>Scan and price.</strong><p>Every balance is priced in USD via Jupiter; friendly names come from the curated token list and on-chain metadata.</p></div></div>
+          <div class="step"><span class="n">3</span><div><strong>Review the plan.</strong><p>Each position gets a proposed action — swap, burn, or close — with value, fees, rent recovery, and estimated net recovery shown.</p></div></div>
+          <div class="step"><span class="n">4</span><div><strong>Approve one batch.</strong><p>You select exactly which accounts to touch; destructive actions are never pre-selected. Your wallet signs the real transactions.</p></div></div>
+        </section>
 
-      <h2>How the preview works</h2>
-      <ol>
-        <li>Read every token account of the wallet (SPL + Token-2022).</li>
-        <li>Price each balance in USD via Jupiter price feeds.</li>
-        <li>Resolve friendly names from the curated Jupiter list and on-chain metadata (Metaplex / Token-2022 extensions).</li>
-        <li>Fetch swap quotes for every swappable balance; classify each position as swap, burn, or close.</li>
-        <li>Show per-position economics: value, expected swap output, rent recovered, maximum protocol fee, and estimated net recovery.</li>
-      </ol>
-      <p>
-        The guest preview on the main page runs this exact pipeline for any address
-        without a wallet connection — nothing is signed or sent.
-      </p>
+        <section id="fees">
+          <h2>Fees</h2>
+          <p>
+            All fee parameters live in the on-chain <strong>config</strong> account
+            and are read before every preview. The values below were fetched
+            directly from mainnet on 2026-08-26 — verify them yourself at any time:
+          </p>
+          <div class="card">
+            <p style="margin:0 0 8px"><strong>Config account (PDA)</strong></p>
+            <code>D33b7KnnXHM51p3W9W3Q9pXBec81fwQNFrHUvCS19afX</code>
+            <p style="margin:10px 0 0">
+              <a href="https://orb.helius.dev/address/D33b7KnnXHM51p3W9W3Q9pXBec81fwQNFrHUvCS19afX" target="_blank" rel="noreferrer">Inspect config on Orb ↗</a>
+            </p>
+          </div>
 
-      <h2>Wallets</h2>
-      <p>
-        Any wallet supported by the Solana wallet-adapter ecosystem works
-        (Phantom, Solflare, and similar). Transactions are built, simulated, and
-        sent from your browser; Tidify never holds your keys.
-      </p>
+          <h3>Closing an empty account (rent recovery)</h3>
+          <div class="fee card">
+            <div><small>Protocol fee rate</small><br /><strong>5.00%</strong><br /><small>of recovered rent (500 bps)</small></div>
+            <div><small>Minimum</small><br /><strong>0 SOL</strong><br /><small>per account</small></div>
+            <div><small>Maximum</small><br /><strong>0.0001 SOL</strong><br /><small>per account (100,000 lamports)</small></div>
+          </div>
 
-      <h2>Privacy</h2>
-      <p>
-        All reads happen from your browser directly against Solana RPC endpoints
-        and public APIs. There is no Tidify backend and no tracking.
-      </p>
+          <h3>Swap and close</h3>
+          <div class="fee card">
+            <div><small>Protocol fee rate</small><br /><strong>0.50%</strong><br /><small>of swap output (50 bps)</small></div>
+            <div><small>Maximum fee rate</small><br /><strong>1.00%</strong><br /><small>cap enforced on-chain (100 bps)</small></div>
+          </div>
 
-      <p style="margin-top:34px"><a href="/security.html">Security &amp; contact →</a></p>
-    </main>
+          <h3>What else you pay</h3>
+          <ul>
+            <li><strong>Solana network fee</strong> — the transaction fee set by the network (typically ~0.000005 SOL + any priority fee you add).</li>
+            <li><strong>Jupiter platform fee</strong> — the swap platform fee charged by the route when a swap is used.</li>
+          </ul>
+          <p class="note">
+            Fee safety: on the swap path the realized fee is enforced on-chain
+            against your approved ceiling — a route can never take more than the
+            maximum you saw in the preview. The estimated net recovery is shown
+            per position before you approve anything.
+          </p>
+
+          <h3>Current config (mainnet)</h3>
+          <table>
+            <tr><th>Field</th><th>Value</th></tr>
+            <tr><td><code>close_fee_bps</code></td><td>500 (5.00%)</td></tr>
+            <tr><td><code>close_min_fee_lamports</code></td><td>0</td></tr>
+            <tr><td><code>close_max_fee_lamports</code></td><td>100,000 (0.0001 SOL)</td></tr>
+            <tr><td><code>swap_fee_bps</code></td><td>50 (0.50%)</td></tr>
+            <tr><td><code>swap_max_fee_bps</code></td><td>100 (1.00% ceiling)</td></tr>
+            <tr><td><code>paused</code></td><td>false</td></tr>
+            <tr><td><code>admin</code></td><td><code>Byh6oEovySNUCgrddQSosyj7eUX9qHE3yNjvmN7zKp5p</code></td></tr>
+            <tr><td><code>protocol_vault</code></td><td><code>2xoHBZa9YjeMhtds4SsaBYNLvvhHFG3JmMdUYLB77j6G</code></td></tr>
+            <tr><td><code>jupiter_program</code></td><td><code>JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4</code></td></tr>
+          </table>
+        </section>
+
+        <section id="token-support">
+          <h2>Token support</h2>
+          <ul>
+            <li>Standard <strong>SPL Token</strong> and <strong>Token-2022</strong> accounts on Solana mainnet.</li>
+            <li>Swaps require a working Jupiter route for the exact balance; small routes are preferred so transactions fit the 1232-byte wire limit.</li>
+            <li>Tokens without a usable route are burned only when the destroyed value is provably no greater than the cost of burning.</li>
+            <li>Non-transferable, unsupported, or unverified tokens are never swapped — they are labeled and can be closed to reclaim rent.</li>
+            <li>The selected output currency (USDC, USDT, or SOL) is never treated as dust.</li>
+          </ul>
+        </section>
+
+        <section id="example-transaction">
+          <h2>Example transaction</h2>
+          <p>
+            A real mainnet transaction that used Tidify: the wallet swapped a
+            token via Jupiter, then closed the emptied token account through the
+            Tidify program to recover its rent.
+          </p>
+          <div class="card">
+            <p style="margin:0 0 8px"><strong>Signature</strong></p>
+            <code>4JoqDJchk1usF3fbRKKNZ8xHjGbGe94jZq8zjG1xW2QBgW2SaqL6RAmZynkyodqWF9mtj48rkLzdF4UHcrYnDaRf</code>
+            <p style="margin:10px 0 0">
+              <a href="https://orb.helius.dev/tx/4JoqDJchk1usF3fbRKKNZ8xHjGbGe94jZq8zjG1xW2QBgW2SaqL6RAmZynkyodqWF9mtj48rkLzdF4UHcrYnDaRf" target="_blank" rel="noreferrer">Open in Orb ↗</a>
+            </p>
+          </div>
+          <table>
+            <tr><th>Field</th><th>Value</th></tr>
+            <tr><td>Date</td><td>2026-08-23 15:56 UTC</td></tr>
+            <tr><td>Slot</td><td>441,191,824</td></tr>
+            <tr><td>Transaction fee</td><td>6,852 lamports (~0.0000069 SOL)</td></tr>
+            <tr><td>Fee payer / signer</td><td><code>CEvxw99BwMjFYx8rwayWqQqWUhRcDebdJdpvNucqXLML</code></td></tr>
+            <tr><td>Status</td><td>Success</td></tr>
+          </table>
+
+          <h3>Step by step (top-level instructions)</h3>
+          <table>
+            <tr><th>#</th><th>Program</th><th>What it did</th></tr>
+            <tr>
+              <td>1</td>
+              <td><span class="badge-prog">Compute Budget</span></td>
+              <td>Set the compute unit limit for the transaction.</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td><span class="badge-prog">Associated Token</span></td>
+              <td><code>CreateIdempotent</code> — created the output token account that receives the swapped funds.</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td><span class="badge-prog jupiter">Jupiter (swap)</span></td>
+              <td><code>SharedAccountsRouteV2</code> — swapped the dust token for the output currency; inner <code>TransferChecked</code> transfers moved the funds in and out of the pool.</td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td><span class="badge-prog tidify">Tidify</span></td>
+              <td><code>CloseEmpty</code> — closed the now-empty token account and recovered its rent; inner <code>CloseAccount</code> executed the SPL Token close, and the rent was transferred to the signer.</td>
+            </tr>
+          </table>
+
+          <h3>What the program logged</h3>
+          <pre>Program log: Instruction: SharedAccountsRouteV2
+Program log: Instruction: TransferChecked
+Program log: Instruction: Swap2
+Program log: Instruction: TransferChecked
+<span class="dim"># now the dust account is empty — Tidify closes it and returns the rent</span>
+Program H5ix9UP5hx3k5W3nu1rMdbDgo5Ahb9Q8RANLdoiXYCgw invoke [1]
+Program log: Instruction: CloseEmpty
+Program log: Instruction: CloseAccount
+Program H5ix9UP5hx3k5W3nu1rMdbDgo5Ahb9Q8RANLdoiXYCgw success</pre>
+          <p class="note">
+            This is one of several real on-chain patterns: the same program also
+            executes <code>BurnAndClose</code> (permanent destruction of
+            valueless tokens, never pre-selected by the app) and batched
+            <code>CloseEmpty</code> runs — all visible on the
+            <a href="https://orb.helius.dev/program/H5ix9UP5hx3k5W3nu1rMdbDgo5Ahb9Q8RANLdoiXYCgw" target="_blank" rel="noreferrer">program page on Orb</a>.
+          </p>
+        </section>
+
+        <section id="security">
+          <h2>Security</h2>
+          <ul>
+            <li><strong>Non-custodial.</strong> Funds never enter a Tidify-controlled account; the vault only receives protocol fees.</li>
+            <li><strong>User approval.</strong> Every account is explicitly selected; destructive actions require manual checks and are never pre-selected.</li>
+            <li><strong>On-chain fee caps.</strong> Fee rates and ceilings live in the config account; the swap path enforces the user's ceiling on the realized fee.</li>
+            <li><strong>Read-only previews.</strong> The guest preview performs no writes.</li>
+          </ul>
+          <p class="note">
+            <strong>Status: not yet formally audited.</strong> Use with appropriate
+            caution. Full policy and disclosure contact:
+            <a href="/security.html">security &amp; contact →</a>
+          </p>
+        </section>
+
+        <section id="contact">
+          <h2>Contact</h2>
+          <p>
+            Questions and feedback: <a href="mailto:help@tidify.xyz">help@tidify.xyz</a><br />
+            Security and vulnerabilities: <a href="mailto:security@tidify.xyz">security@tidify.xyz</a><br />
+            Machine-readable policy: <a href="/.well-known/security.txt">/.well-known/security.txt</a>
+          </p>
+        </section>
+      </main>
+    </div>
     <footer>Tidify · Small balances, made useful on Solana.</footer>
   </body>
 </html>
