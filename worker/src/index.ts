@@ -38,7 +38,7 @@ function corsHeaders(request: Request): Record<string, string> {
   return {
     "Access-Control-Allow-Origin": allowOrigin,
     "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, X-Tidify-Scan-Id",
+    "Access-Control-Allow-Headers": "Content-Type, X-Tidify-Scan-Id, Solana-Client, X-Solana-Client, Accept",
     "Access-Control-Expose-Headers": "Server-Timing, X-Tidify-Request-Id",
     "Vary": "Origin",
     "Content-Type": "application/json",
