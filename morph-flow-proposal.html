@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tidify — morph flow proposal</title>
+<style>
+  :root{--dark:#171a14;--panel:#f3f1e9;--card:#fbfaf5;--line:#d4d1c7;--lime:#d5fb42;--ink:#171814;--muted:#7f8278;--blue:#5d6d0e;--good:#7ee2a8;--burn:#e58a7a}
+  *{box-sizing:border-box} html,body{margin:0;min-height:100%;background:var(--dark);font-family:Inter,"DM Sans",system-ui,sans-serif;color:var(--ink);overflow:hidden}
+  .app{position:relative;width:100vw;height:100vh;overflow:hidden;background:var(--panel)}
+  .dark-field{position:absolute;inset:0;background:radial-gradient(circle at 70% 35%,rgba(213,251,66,.07),transparent 28%),radial-gradient(circle at 20% 85%,rgba(213,251,66,.05),transparent 34%),var(--dark);animation:fieldMorph 4.8s cubic-bezier(.22,1,.36,1) forwards}
+  .rings{position:absolute;width:520px;height:520px;border:1px solid rgba(213,251,66,.15);border-radius:48% 52% 60% 40%;right:9vw;top:12vh;box-shadow:0 0 0 70px rgba(213,251,66,.025),0 0 0 140px rgba(213,251,66,.015);animation:ringsDrift 18s linear infinite, ringsMorph 4.8s cubic-bezier(.22,1,.36,1) forwards;transform-origin:center}
+  .brand{position:absolute;left:34px;top:28px;display:flex;gap:12px;align-items:center;color:#f3f1e9;z-index:5;animation:brandMorph 4.8s cubic-bezier(.22,1,.36,1) forwards}.mark{width:36px;height:36px;border:1px solid #050604;border-radius:10px;background:var(--lime);display:grid;place-items:center;font-weight:900;color:#171814;letter-spacing:-.08em;transform:rotate(-3deg)}.brand strong{display:block}.brand small{display:block;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#81867a;margin-top:2px}
+  .intro-copy{position:absolute;left:9vw;top:24vh;color:#f3f1e9;z-index:3;animation:copyMorph 4.8s cubic-bezier(.22,1,.36,1) forwards}.eyebrow{font-size:12px;font-weight:800;letter-spacing:.22em;text-transform:uppercase;color:var(--lime);opacity:0;animation:inUp .5s .3s forwards}.intro-title{margin:18px 0 0;font-size:clamp(46px,8vw,104px);line-height:.88;letter-spacing:-.08em}.word{display:inline-block;opacity:0;transform:translateY(24px);animation:wordIn .55s forwards}.w1{animation-delay:.6s}.w2{animation-delay:.78s}.w3{animation-delay:1s}.w4{animation-delay:1.16s;color:var(--lime)}
+  .final-title{position:absolute;left:34px;top:154px;width:420px;color:#f3f1e9;font-size:clamp(38px,5vw,70px);line-height:.92;letter-spacing:-.075em;font-weight:900;opacity:0;transform:translateY(30px);animation:finalTitle 4.8s cubic-bezier(.22,1,.36,1) forwards}.final-title em{color:var(--lime);font-style:normal}
+  .wallet{position:absolute;right:12vw;top:31vh;width:360px;height:190px;border:1px solid #3a3d33;border-radius:24px;background:#2c2f26;color:#f3f1e9;padding:28px 30px;opacity:0;transform:translateY(34px) scale(.96);animation:walletIn .7s 1.3s cubic-bezier(.22,1,.36,1) forwards,walletMorph 4.8s cubic-bezier(.22,1,.36,1) forwards;z-index:4}.wallet:before{content:"";position:absolute;inset:-12px;border:1px solid rgba(213,251,66,.24);border-radius:30px;opacity:.8}.wallet .label{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#9ea197;font-weight:800}.balance{margin-top:16px;font-size:38px;font-weight:900;letter-spacing:-.05em}.balance span{font-size:15px;color:#b7baaf}.dustcount{position:absolute;left:30px;bottom:26px;color:#a4a89c;text-transform:uppercase;font-size:13px;font-weight:800;letter-spacing:.07em}.pulse{animation:walletPulse .42s 3.7s ease-out}
+  .pill{position:absolute;z-index:6;height:34px;padding:0 14px;border:1px solid #464b3e;border-radius:999px;background:#363a30;color:#f3f1e9;display:flex;align-items:center;gap:12px;font-size:12px;font-weight:800;opacity:0;animation:pillIn .5s 1.6s forwards, float 2.8s 1.65s ease-in-out infinite, pillInto .9s 2s cubic-bezier(.5,0,.2,1) forwards}.pill b{color:var(--lime)}.p1{left:20vw;top:52vh}.p2{left:55vw;top:20vh;animation-delay:1.68s,1.72s,2.08s}.p3{left:67vw;top:62vh;animation-delay:1.76s,1.8s,2.16s}.p4{left:41vw;top:25vh;animation-delay:1.84s,1.88s,2.24s}.p5{left:77vw;top:42vh;animation-delay:1.92s,1.96s,2.32s}.pill b{animation:valueFlash .55s 3s ease-out}
+  .scan-panel{position:absolute;right:44px;top:118px;width:min(46vw,560px);min-height:calc(100vh - 156px);border-radius:28px;background:var(--card);border:1px solid var(--line);box-shadow:0 24px 70px rgba(23,24,20,.16);padding:30px;opacity:0;transform:translateX(80px);animation:panelIn .8s 4.25s cubic-bezier(.22,1,.36,1) forwards;z-index:3}.steps{display:flex;gap:8px;margin-bottom:26px;opacity:0;transform:translateY(-14px);animation:stepsIn .45s 4.55s forwards}.step{height:34px;border-radius:999px;border:1px solid #d9d6cc;padding:0 12px;display:flex;align-items:center;gap:7px;font-size:11px;font-weight:900;color:#6f7269;text-transform:uppercase}.step:first-child{background:#eef4d5;color:#4e5c17;border-color:#d5fb42}.step span{width:18px;height:18px;border-radius:50%;background:#d5fb42;color:#171814;display:grid;place-items:center}.panel-head{font-size:12px;font-weight:900;letter-spacing:.16em;text-transform:uppercase;color:#68760f}.scan-panel h2{font-size:31px;line-height:1;margin:10px 0 8px;letter-spacing:-.05em}.scan-panel p{color:#55584f;line-height:1.5;margin:0 0 18px}.guest{border:1px solid var(--line);background:#f3f1e9;border-radius:18px;padding:18px}.guest label{display:block;font-size:13px;font-weight:800;color:#55584f;margin-bottom:9px}.row{display:flex;gap:8px}.row input{min-width:0;flex:1;height:46px;border:1px solid #c8c4b7;border-radius:12px;padding:0 13px;background:#fffdf7;font-size:14px}.row button{height:46px;border:1px solid #171814;border-radius:12px;background:#d5fb42;padding:0 18px;font-weight:900}.threshold{margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:10px}.tile{border:1px solid #dedbd1;border-radius:14px;padding:14px;background:#fffdf7}.tile small{display:block;color:#7a7d73;font-weight:700}.tile strong{display:block;margin-top:6px;font-size:20px}.old{margin-top:18px;border-top:1px solid #e2dfd5;padding-top:18px;color:#686b62;font-size:14px}
+  .skip{position:absolute;right:24px;bottom:20px;z-index:9;background:rgba(243,241,233,.12);color:#f3f1e9;border:1px solid rgba(243,241,233,.22);border-radius:999px;height:38px;padding:0 16px;font-weight:800;cursor:pointer}.app.done *{animation-duration:.001s!important;animation-delay:0s!important}
+  @keyframes inUp{to{opacity:1;transform:none}}@keyframes wordIn{to{opacity:1;transform:none}}@keyframes walletIn{to{opacity:1;transform:none}}@keyframes pillIn{to{opacity:1}}@keyframes float{50%{translate:0 -10px}}@keyframes valueFlash{35%{color:#fff;text-shadow:0 0 18px rgba(213,251,66,.9)}}@keyframes pillInto{0%{}70%{opacity:1}100%{opacity:0;left:68vw;top:42vh;transform:scale(.24)}}@keyframes walletPulse{50%{box-shadow:0 0 0 16px rgba(213,251,66,.16)}}@keyframes ringsDrift{to{rotate:360deg}}
+  @keyframes fieldMorph{0%,82%{clip-path:inset(0 0 0 0 round 0)}100%{clip-path:inset(0 calc(100vw - min(48vw,560px)) 0 0 round 0)}}
+  @keyframes ringsMorph{0%,82%{right:9vw;top:12vh;opacity:1}100%{right:auto;left:-210px;top:80px;opacity:.9}}
+  @keyframes brandMorph{0%,82%{left:34px;top:28px;color:#f3f1e9}100%{left:34px;top:30px;color:#f3f1e9}}
+  @keyframes copyMorph{0%,72%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-30px) scale(.92)}}
+  @keyframes finalTitle{0%,78%{opacity:0;transform:translateY(30px) scale(1.08)}100%{opacity:1;transform:none}}
+  @keyframes walletMorph{0%,78%{}100%{right:calc(46vw + 76px);top:calc(100vh - 245px);width:300px;height:150px;transform:scale(.82);opacity:.28}}
+  @keyframes panelIn{to{opacity:1;transform:none}}@keyframes stepsIn{to{opacity:1;transform:none}}
+  @media(max-width:860px){html,body{overflow:auto}.app{height:auto;min-height:100vh;overflow:visible}.dark-field{position:relative;min-height:58vh;animation:none}.rings{width:360px;height:360px;right:-120px;top:70px}.brand{position:absolute}.intro-copy{left:22px;top:150px}.intro-title{font-size:54px}.wallet{right:18px;top:330px;width:310px}.pill{display:none}.final-title{display:none}.scan-panel{position:relative;right:auto;top:auto;width:calc(100% - 24px);min-height:auto;margin:12px auto 30px;opacity:1;transform:none;animation:none}.steps{overflow:auto}.row{flex-direction:column}.row button{width:100%}.skip{display:none}}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="dark-field"></div><div class="rings"></div>
+  <div class="brand"><div class="mark">tf</div><div><strong>Tidify</strong><small>Solana token cleanup</small></div></div>
+  <div class="intro-copy"><div class="eyebrow">HOW TIDIFY WORKS</div><h1 class="intro-title"><span class="word w1">Dust</span> <span class="word w2">out.</span><br><span class="word w3">SOL</span> <span class="word w4">back.</span></h1></div>
+  <div class="final-title">Turn leftover tokens <em>into usable value.</em></div>
+  <div class="wallet" id="wallet"><div class="label">Wallet</div><div class="balance" id="balance">1.24 <span>SOL</span></div><div class="dustcount" id="dustcount">+ 5 dust accounts</div></div>
+  <div class="pill p1">TRUMP <b>$2.10</b></div><div class="pill p2">PUMP <b>$0.00</b></div><div class="pill p3">BONK <b>$0.41</b></div><div class="pill p4">CYBERLEEK <b>$0.83</b></div><div class="pill p5">CATE <b>$0.00</b></div>
+  <section class="scan-panel">
+    <nav class="steps"><div class="step"><span>1</span>Preview</div><div class="step"><span>2</span>Threshold</div><div class="step"><span>3</span>Review</div><div class="step"><span>4</span>Approve</div></nav>
+    <div class="panel-head">Guest preview</div><h2>Scan any Solana wallet</h2><p>Read-only estimate first. Connect only when ready to approve real mainnet transactions.</p>
+    <form class="guest" onsubmit="event.preventDefault(); this.querySelector('button').textContent='Estimating…'">
+      <label>Wallet address to preview</label><div class="row"><input placeholder="Paste wallet address"><button>Estimate</button></div>
+    </form>
+    <div class="threshold"><div class="tile"><small>Destination</small><strong>USDC</strong></div><div class="tile"><small>Threshold</small><strong>$5.00</strong></div></div>
+    <div class="old">Below this in production: existing connect wallet, threshold, review, approve flow unchanged.</div>
+  </section>
+  <button class="skip" onclick="document.getElementById('app').classList.add('done')">Skip intro</button>
+</div>
+<script>
+  const balance=document.getElementById('balance'), dust=document.getElementById('dustcount'), wallet=document.getElementById('wallet');
+  setTimeout(()=>dust.textContent='5 accounts identified',3000);
+  setTimeout(()=>wallet.classList.add('pulse'),3700);
+  const start=3000,dur=700; let raf;
+  function tick(t){let p=Math.min(1,(t-startTime)/dur),e=1-Math.pow(1-p,3); balance.innerHTML=(1.24+.03*e).toFixed(2)+' <span>SOL</span>'; if(p<1)raf=requestAnimationFrame(tick)}
+  let startTime; setTimeout(()=>{startTime=performance.now(); raf=requestAnimationFrame(tick)},3000);
+</script>
+</body>
+</html>
