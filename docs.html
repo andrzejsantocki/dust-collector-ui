@@ -166,7 +166,8 @@
             <li>Swaps require a working Jupiter route for the exact balance; small routes are preferred so transactions fit the 1232-byte wire limit.</li>
             <li>Tokens without a usable route are burned only when the destroyed value is provably no greater than the cost of burning.</li>
             <li>Non-transferable, unsupported, or unverified tokens are never swapped — they are labeled and can be closed to reclaim rent.</li>
-            <li>The selected output currency (USDC, USDT, or SOL) is never treated as dust.</li>
+            <li>The selected output currency (USDC or USDT) is never treated as dust.</li>
+            <li>Rent reclaimed from closed token accounts is returned by Solana in SOL. Tidify keeps it as SOL to avoid an additional swap, network fee, and slippage.</li>
           </ul>
         </section>
 
