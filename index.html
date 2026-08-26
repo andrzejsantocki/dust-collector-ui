@@ -4,27 +4,197 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#f4f2ea" />
-    <meta name="description" content="Preview and recover small Solana token balances. Tidify finds token dust, estimates net recovery, and lets you swap, burn, or close selected SPL Token and Token-2022 accounts." />
+    <meta name="description" content="Clean up dozens of low-balance Solana tokens in one click. Convert token dust, close unused accounts, and reclaim SOL locked as rent." />
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://tidify.xyz/" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Tidify" />
     <meta property="og:title" content="Tidify | Recover Solana Token Dust" />
-    <meta property="og:description" content="Preview any Solana wallet and recover usable value from small SPL Token and Token-2022 balances." />
+    <meta property="og:description" content="Clean up dozens of low-balance Solana tokens in one click. Convert token dust, close unused accounts, and reclaim SOL locked as rent." />
     <meta property="og:url" content="https://tidify.xyz/" />
-    <meta name="twitter:card" content="summary" />
+    <meta property="og:image" content="https://tidify.xyz/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="en_US" />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Tidify | Recover Solana Token Dust" />
-    <meta name="twitter:description" content="Preview any Solana wallet and recover usable value from small token balances." />
+    <meta name="twitter:description" content="Clean up dozens of low-balance Solana tokens in one click. Convert token dust, close unused accounts, and reclaim SOL locked as rent." />
+    <meta name="twitter:image" content="https://tidify.xyz/og-image.png" />
     <link rel="icon" href="./favicon.ico?v=tidify-2" sizes="any" />
     <link rel="icon" type="image/png" href="./favicon.png?v=tidify-2" sizes="64x64" />
     <link rel="icon" type="image/svg+xml" href="./favicon.svg?v=tidify-2" />
     <link rel="apple-touch-icon" href="./apple-touch-icon.png?v=tidify-2" sizes="180x180" />
     <link rel="shortcut icon" href="./favicon.ico?v=tidify-2" />
     <title>Tidify | Recover Solana Token Dust</title>
-    <script type="module" crossorigin src="/assets/index-L2GJxEaH.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-D72a0ubr.css">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Tidify",
+      "alternateName": "Solana token cleanup",
+      "url": "https://tidify.xyz/",
+      "applicationCategory": "FinanceApplication",
+      "operatingSystem": "Web",
+      "description": "Clean up dozens of low-balance Solana tokens in one click. Convert token dust, close unused accounts, and reclaim SOL locked as rent.",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Tidify",
+        "url": "https://tidify.xyz/",
+        "logo": "https://tidify.xyz/favicon.png"
+      }
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is token dust?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Small leftover SPL Token or Token-2022 balances that sit in a Solana wallet after swaps, airdrops, or protocol claims. Each one is too small to use but still occupies an account that holds rent." }
+        },
+        {
+          "@type": "Question",
+          "name": "Does Tidify take custody of my funds?",
+          "acceptedAnswer": { "@type": "Answer", "text": "No. Tidify is non-custodial: your wallet signs every transaction, funds never pass through a Tidify-controlled account, and you explicitly approve each position before anything is sent." }
+        },
+        {
+          "@type": "Question",
+          "name": "Do I need to connect a wallet to see what I can recover?",
+          "acceptedAnswer": { "@type": "Answer", "text": "No. Paste any Solana address in the guest preview to see an estimate of recoverable value, the proposed close/burn/swap plan, and fees — before connecting anything." }
+        },
+        {
+          "@type": "Question",
+          "name": "Which tokens are supported?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Standard SPL Token and Token-2022 accounts. Non-transferable, unsupported, or unverified tokens are never swapped — they are clearly labeled and left untouched unless you choose to reclaim their rent by closing the account." }
+        },
+        {
+          "@type": "Question",
+          "name": "What does it cost?",
+          "acceptedAnswer": { "@type": "Answer", "text": "A small protocol fee that is set on-chain, capped, and shown in the preview before you approve; the Solana network fee; and the Jupiter swap platform fee when a swap route is used. The estimated net recovery is always shown per position." }
+        },
+        {
+          "@type": "Question",
+          "name": "Which network does Tidify run on?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Solana mainnet. The Tidify program and its fee configuration live on-chain, and every action is a normal, visible Solana transaction." }
+        }
+      ]
+    }
+    </script>
+    <script type="module" crossorigin src="/assets/index-BcaeKOLv.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-B12fcvgV.css">
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!--
+        Static, crawlable marketing content. The React app replaces this block
+        on mount; search engines and link crawlers that do not execute JS still
+        see the full public footprint below.
+      -->
+      <header>
+        <div class="brand">
+          <span class="brand-mark">tf</span>
+          <span><strong>Tidify</strong><small>Solana token cleanup</small></span>
+        </div>
+      </header>
+
+      <main>
+        <section aria-labelledby="tidify-h1">
+          <span class="eyebrow">MAKE THE SMALL STUFF USEFUL</span>
+          <h1 id="tidify-h1">Turn leftover tokens into usable value</h1>
+          <p>
+            Tidify identifies empty token accounts and scattered Solana token
+            balances — dust left over from swaps, airdrops, and protocol claims —
+            estimates what each one is worth, and lets you swap, burn, or close
+            the accounts you choose. Everything is non-custodial: your wallet
+            signs, and nothing is forced.
+          </p>
+        </section>
+
+        <section id="how-it-works" aria-labelledby="how-title">
+          <h2 id="how-title">How it works</h2>
+          <ol>
+            <li><strong>Connect or paste a wallet.</strong> Tidify reads the wallet's token accounts on Solana mainnet — no signature needed to preview.</li>
+            <li><strong>Scan and price.</strong> Every balance is priced in USD; each token gets a friendly name from on-chain metadata when available.</li>
+            <li><strong>Review the plan.</strong> For each position Tidify proposes the economical action — swap, burn, or close — with estimated recovery, fees, and rent refund.</li>
+            <li><strong>Approve one batch.</strong> You check every account and sign a real mainnet transaction batch. Recovered value lands directly in your wallet.</li>
+          </ol>
+        </section>
+
+        <section id="safety" aria-labelledby="safety-title">
+          <h2 id="safety-title">Safety</h2>
+          <ul>
+            <li><strong>Non-custodial.</strong> Funds never pass through a Tidify-controlled account; your wallet signs every transaction.</li>
+            <li><strong>Nothing is forced.</strong> Every account must be explicitly selected; the default is always to do nothing.</li>
+            <li><strong>Fee ceiling on-chain.</strong> The protocol fee is configurable on-chain and capped; the preview shows the maximum before you approve.</li>
+            <li><strong>Unverified tokens are labeled.</strong> Tokens without verifiable metadata are marked "Unverified token" and link to an explorer so you know exactly what you are looking at.</li>
+            <li><strong>Unsupported tokens are left alone.</strong> Non-transferable or unsupported token accounts are never swapped.</li>
+          </ul>
+        </section>
+
+        <section id="fees" aria-labelledby="fees-title">
+          <h2 id="fees-title">Fees</h2>
+          <p>
+            Tidify charges a small protocol fee, set on-chain and capped, on the
+            value it helps you recover. You also pay the Solana network fee and,
+            when a swap route is used, the Jupiter platform fee. Every position
+            shows its estimated net recovery <em>before</em> you approve anything —
+            no surprises at signing time.
+          </p>
+        </section>
+
+        <section id="faq" aria-labelledby="faq-title">
+          <h2 id="faq-title">FAQ</h2>
+          <details>
+            <summary>What is token dust?</summary>
+            <p>Small leftover SPL Token or Token-2022 balances that sit in a Solana wallet after swaps, airdrops, or protocol claims. Each one is too small to use but still occupies an account that holds rent.</p>
+          </details>
+          <details>
+            <summary>Does Tidify take custody of my funds?</summary>
+            <p>No. Tidify is non-custodial: your wallet signs every transaction, funds never pass through a Tidify-controlled account, and you explicitly approve each position before anything is sent.</p>
+          </details>
+          <details>
+            <summary>Do I need to connect a wallet to see what I can recover?</summary>
+            <p>No. Paste any Solana address in the guest preview to see an estimate of recoverable value, the proposed close/burn/swap plan, and fees — before connecting anything.</p>
+          </details>
+          <details>
+            <summary>Which tokens are supported?</summary>
+            <p>Standard SPL Token and Token-2022 accounts. Non-transferable, unsupported, or unverified tokens are never swapped — they are clearly labeled and left untouched unless you choose to reclaim their rent by closing the account.</p>
+          </details>
+          <details>
+            <summary>What does it cost?</summary>
+            <p>A small protocol fee that is set on-chain, capped, and shown in the preview before you approve; the Solana network fee; and the Jupiter swap platform fee when a swap route is used. The estimated net recovery is always shown per position.</p>
+          </details>
+          <details>
+            <summary>Which network does Tidify run on?</summary>
+            <p>Solana mainnet. The Tidify program and its fee configuration live on-chain, and every action is a normal, visible Solana transaction.</p>
+          </details>
+        </section>
+
+        <section id="docs" aria-labelledby="docs-title">
+          <h2 id="docs-title">Docs</h2>
+          <p>
+            Read the protocol documentation: program address, on-chain fee
+            configuration, token support, and how the preview estimates work.
+            <a href="/docs.html">Open the docs →</a>
+          </p>
+        </section>
+
+        <section id="contact" aria-labelledby="contact-title">
+          <h2 id="contact-title">Contact &amp; Security</h2>
+          <p>
+            Found an issue or a vulnerability? Read the security policy and get
+            in touch: <a href="/security.html">Security &amp; contact →</a>
+          </p>
+        </section>
+      </main>
+
+      <footer>
+        <span>Tidify</span>
+        <span>Small balances, made useful on Solana.</span>
+      </footer>
+    </div>
   </body>
 </html>
