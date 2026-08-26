@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="index, follow" />
+    <meta name="description" content="Tidify security policy and contact. Non-custodial design, on-chain fee caps, and responsible disclosure for the Solana tidify program." />
+    <link rel="canonical" href="https://tidify.xyz/security.html" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Tidify" />
+    <meta property="og:title" content="Tidify Security" />
+    <meta property="og:description" content="Security posture and responsible disclosure for Tidify." />
+    <meta property="og:url" content="https://tidify.xyz/security.html" />
+    <link rel="icon" href="./favicon.svg" />
+    <title>Tidify Security</title>
+    <style>
+      :root { color-scheme: light; font-family: "DM Sans", Arial, sans-serif; color: #171814; background: #f3f1e9; }
+      body { margin: 0; min-height: 100vh; background: radial-gradient(circle at 12% 5%, #fcfbf6 0, transparent 32%), #f3f1e9; }
+      main { width: min(760px, calc(100% - 40px)); margin: 40px auto 60px; }
+      a { color: #5d6d0e; }
+      h1 { font-size: 34px; margin: 8px 0 4px; }
+      h2 { font-size: 20px; margin: 34px 0 8px; border-bottom: 1px solid #d4d1c7; padding-bottom: 6px; }
+      p, li { font-size: 15px; line-height: 1.6; color: #3c3d36; }
+      code { background: #e8e6dc; padding: 2px 6px; border-radius: 5px; font-size: 13px; word-break: break-all; }
+      .badge { display: inline-block; background: #d5fb42; color: #171814; font-weight: 700; padding: 4px 10px; border-radius: 20px; font-size: 12px; }
+      .back { display: inline-block; margin-bottom: 18px; color: #5d6d0e; text-decoration: none; font-size: 14px; }
+      .back:hover { text-decoration: underline; }
+      .notice { background: #e8e6dc; border-left: 4px solid #d5fb42; padding: 12px 16px; border-radius: 0 8px 8px 0; }
+      footer { width: min(760px, calc(100% - 40px)); margin: 0 auto 30px; color: #92938c; font-size: 12px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <a class="back" href="/">← Tidify</a>
+      <span class="badge">Security</span>
+      <h1>Security &amp; contact</h1>
+
+      <div class="notice">
+        <strong>Status: not yet formally audited.</strong>
+        Tidify is an early protocol. Funds remain in your wallet at all times and
+        every transaction is user-approved, but use it with appropriate caution.
+      </div>
+
+      <h2>Design posture</h2>
+      <ul>
+        <li><strong>Non-custodial.</strong> User funds never enter a Tidify-controlled account; the protocol vault only ever receives the protocol fee.</li>
+        <li><strong>User approval.</strong> Every account that gets touched is explicitly selected and signed by the user. Nothing is forced or batched without approval.</li>
+        <li><strong>On-chain fee caps.</strong> Fee rates and ceilings live in the config account; the swap path enforces the user's fee ceiling on the realized amount.</li>
+        <li><strong>Read-only previews.</strong> The guest preview performs no writes at all.</li>
+        <li><strong>Unverified tokens.</strong> Positions without verifiable metadata are labeled "Unverified token" with an explorer link — never silently swapped.</li>
+      </ul>
+
+      <h2>Responsible disclosure</h2>
+      <p>
+        Found a vulnerability in the Tidify program, the web app, or the docs?
+        Please report it privately before disclosing publicly:
+      </p>
+      <p>
+        <strong>Email:</strong> <a href="mailto:security@tidify.xyz">security@tidify.xyz</a>
+      </p>
+      <p>Please include:</p>
+      <ul>
+        <li>Description of the issue and its impact</li>
+        <li>Steps to reproduce or a proof of concept</li>
+        <li>Affected component (program / web app / docs)</li>
+        <li>Suggested fix, if you have one</li>
+      </ul>
+      <p>
+        We aim to acknowledge reports within 3 business days and to keep you
+        informed as the issue is triaged. If you prefer to stay anonymous, use a
+        throwaway email address.
+      </p>
+
+      <h2>General contact</h2>
+      <p>
+        Questions, feedback, or feature ideas: open an issue on the project's
+        GitHub repository or reach out on X/Twitter — links are maintained on the
+        main page and in the docs.
+      </p>
+    </main>
+    <footer>Tidify · Small balances, made useful on Solana.</footer>
+  </body>
+</html>

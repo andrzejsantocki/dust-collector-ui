@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="index, follow" />
+    <meta name="description" content="Tidify protocol documentation: program address, on-chain fee configuration, token support, and how the recovery preview works." />
+    <link rel="canonical" href="https://tidify.xyz/docs.html" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Tidify" />
+    <meta property="og:title" content="Tidify Docs" />
+    <meta property="og:description" content="Program address, fees, token support, and how the Tidify recovery preview works." />
+    <meta property="og:url" content="https://tidify.xyz/docs.html" />
+    <link rel="icon" href="./favicon.svg" />
+    <title>Tidify Docs</title>
+    <style>
+      :root { color-scheme: light; font-family: "DM Sans", Arial, sans-serif; color: #171814; background: #f3f1e9; }
+      body { margin: 0; min-height: 100vh; background: radial-gradient(circle at 12% 5%, #fcfbf6 0, transparent 32%), #f3f1e9; }
+      main { width: min(760px, calc(100% - 40px)); margin: 40px auto 60px; }
+      a { color: #5d6d0e; }
+      h1 { font-size: 34px; margin: 8px 0 4px; }
+      h2 { font-size: 20px; margin: 34px 0 8px; border-bottom: 1px solid #d4d1c7; padding-bottom: 6px; }
+      p, li { font-size: 15px; line-height: 1.6; color: #3c3d36; }
+      code { background: #e8e6dc; padding: 2px 6px; border-radius: 5px; font-size: 13px; word-break: break-all; }
+      .badge { display: inline-block; background: #d5fb42; color: #171814; font-weight: 700; padding: 4px 10px; border-radius: 20px; font-size: 12px; }
+      .back { display: inline-block; margin-bottom: 18px; color: #5d6d0e; text-decoration: none; font-size: 14px; }
+      .back:hover { text-decoration: underline; }
+      table { border-collapse: collapse; width: 100%; font-size: 14px; }
+      td, th { border: 1px solid #d4d1c7; padding: 8px 10px; text-align: left; }
+      th { background: #e8e6dc; }
+      footer { width: min(760px, calc(100% - 40px)); margin: 0 auto 30px; color: #92938c; font-size: 12px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <a class="back" href="/">← Tidify</a>
+      <span class="badge">Docs</span>
+      <h1>Tidify protocol docs</h1>
+      <p>Tidify is a non-custodial Solana program that helps you recover usable value from small token balances (dust) by swapping, burning, or closing SPL Token and Token-2022 accounts.</p>
+
+      <h2>Program</h2>
+      <p>
+        Program ID: <code>H5ix9UP5hx3k5W3nu1rMdbDgo5Ahb9Q8RANLdoiXYCgw</code><br />
+        View on Orb: <a href="https://orb.helius.dev/program/H5ix9UP5hx3k5W3nu1rMdbDgo5Ahb9Q8RANLdoiXYCgw">https://orb.helius.dev/program/H5ix9UP5hx3k5W3nu1rMdbDgo5Ahb9Q8RANLdoiXYCgw</a>
+      </p>
+      <p>
+        The protocol has two derived accounts: a <strong>config</strong> PDA holding the
+        fee configuration and authorities, and a <strong>vault</strong> PDA that receives
+        protocol fees. Funds belonging to users never pass through the vault — only
+        the protocol fee does.
+      </p>
+
+      <h2>On-chain fee configuration</h2>
+      <p>The config account is the source of truth for fees. The web app reads it before every preview and refuses to build anything when it cannot be read.</p>
+      <table>
+        <tr><th>Field</th><th>Meaning</th></tr>
+        <tr><td><code>closeFeeBps</code></td><td>Protocol fee in basis points for closing an account (bounded by the min/max in lamports).</td></tr>
+        <tr><td><code>closeMinFeeLamports</code> / <code>closeMaxFeeLamports</code></td><td>Floor and ceiling of the close fee per account.</td></tr>
+        <tr><td><code>swapFeeBps</code> / <code>swapMaxFeeBps</code></td><td>Protocol fee rate and ceiling for the swap-and-close path.</td></tr>
+        <tr><td><code>admin</code></td><td>Authority that can update the configuration.</td></tr>
+        <tr><td><code>protocolVault</code></td><td>Account that collects protocol fees.</td></tr>
+        <tr><td><code>paused</code></td><td>When paused, the app blocks transaction execution.</td></tr>
+      </table>
+      <p>
+        Fee safety: the realized fee on the swap path is enforced on-chain against
+        the user's ceiling — a route cannot take more than the maximum you approved.
+      </p>
+
+      <h2>Token support</h2>
+      <ul>
+        <li><strong>SPL Token</strong> and <strong>Token-2022</strong> accounts on Solana mainnet.</li>
+        <li>Swaps require a working Jupiter route for the exact balance (small routes are preferred so transactions fit the 1232-byte wire limit).</li>
+        <li>Tokens without a usable swap route are burned only when the destroyed value is provably no greater than the cost of burning.</li>
+        <li>Non-transferable, unsupported, or unverified tokens are never swapped; they are labeled and can be closed to reclaim rent.</li>
+        <li>The selected output currency (USDC, USDT, or SOL) is never treated as dust.</li>
+      </ul>
+
+      <h2>How the preview works</h2>
+      <ol>
+        <li>Read every token account of the wallet (SPL + Token-2022).</li>
+        <li>Price each balance in USD via Jupiter price feeds.</li>
+        <li>Resolve friendly names from the curated Jupiter list and on-chain metadata (Metaplex / Token-2022 extensions).</li>
+        <li>Fetch swap quotes for every swappable balance; classify each position as swap, burn, or close.</li>
+        <li>Show per-position economics: value, expected swap output, rent recovered, maximum protocol fee, and estimated net recovery.</li>
+      </ol>
+      <p>
+        The guest preview on the main page runs this exact pipeline for any address
+        without a wallet connection — nothing is signed or sent.
+      </p>
+
+      <h2>Wallets</h2>
+      <p>
+        Any wallet supported by the Solana wallet-adapter ecosystem works
+        (Phantom, Solflare, and similar). Transactions are built, simulated, and
+        sent from your browser; Tidify never holds your keys.
+      </p>
+
+      <h2>Privacy</h2>
+      <p>
+        All reads happen from your browser directly against Solana RPC endpoints
+        and public APIs. There is no Tidify backend and no tracking.
+      </p>
+
+      <p style="margin-top:34px"><a href="/security.html">Security &amp; contact →</a></p>
+    </main>
+    <footer>Tidify · Small balances, made useful on Solana.</footer>
+  </body>
+</html>
