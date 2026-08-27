@@ -297,6 +297,7 @@ function App() {
     solUsd: number;
     config: ConfigView | null;
   } | null>(null);
+  const [guestScanSource, setGuestScanSource] = useState<"user_wallet" | "real_wallet_example">("user_wallet");
   // Async on-chain metadata icons (mint -> logo URL) resolved after a scan;
   // positions render the letter avatar until an icon arrives.
   const [logoOverrides, setLogoOverrides] = useState<Record<string, string>>({});
@@ -772,11 +773,16 @@ function App() {
   );
 
   // Guest preview: estimate what any wallet could redeem, without connecting.
-  const guestCheck = useCallback(async () => {
+  const guestCheck = useCallback(async (source: "user_wallet" | "real_wallet_example" = guestScanSource) => {
     const scanId = newScanId();
     const totalStarted = performance.now();
-    capture("scan_cta_clicked", { scan_id: scanId, mode: connected ? "connected" : "guest" });
-    capture("scan_started", { scan_id: scanId, mode: "guest" });
+    capture(source === "real_wallet_example" ? "real_wallet_example_scan_clicked" : "user_wallet_scan_clicked", {
+      scan_id: scanId,
+      mode: connected ? "connected" : "guest",
+      source,
+    });
+    capture("scan_cta_clicked", { scan_id: scanId, mode: connected ? "connected" : "guest", source });
+    capture("scan_started", { scan_id: scanId, mode: "guest", source });
     const trimmed = guestAddress.trim();
     let owner: PublicKey;
     try {
@@ -823,7 +829,7 @@ function App() {
     } finally {
       setGuestChecking(false);
     }
-  }, [guestAddress, readOnlyProgram, fetchConfigView, analyzeWallet, outputMint, connected]);
+  }, [guestAddress, readOnlyProgram, fetchConfigView, analyzeWallet, outputMint, connected, guestScanSource]);
 
   const scan = useCallback(async () => {
     if (!walletAddress || !program) return;
@@ -1238,14 +1244,14 @@ function App() {
                         type="text"
                         placeholder="Paste your Solana wallet address"
                         value={guestAddress}
-                        onChange={(event) => setGuestAddress(event.target.value)}
+                        onChange={(event) => { setGuestScanSource("user_wallet"); setGuestAddress(event.target.value); }}
                         onKeyDown={(event) => {
-                          if (event.key === "Enter") guestCheck();
+                          if (event.key === "Enter") guestCheck("user_wallet");
                         }}
                         disabled={guestChecking}
                         aria-label="Wallet address to scan"
                       />
-                      <button className={guestAddress.trim() ? "primary scan-cta active" : "primary scan-cta"} onClick={guestCheck} disabled={guestChecking}>
+                      <button className={guestAddress.trim() ? "primary scan-cta active" : "primary scan-cta"} onClick={() => guestCheck("user_wallet")} disabled={guestChecking}>
                         {guestChecking ? (
                           <>
                             <i className="spinner" /> Scanning…
@@ -1260,7 +1266,8 @@ function App() {
                       type="button"
                       className="demo-wallet-link"
                       onClick={() => {
-                        capture("demo_wallet_selected", { source: "primary_scan" });
+                        capture("real_wallet_example_selected", { source: "primary_scan" });
+                        setGuestScanSource("real_wallet_example");
                         setGuestAddress("E3VpEoP6AbJy68cjyg1ZHo6JUtojMZmJEYtqHaNEv1F7");
                       }}
                     >
@@ -1379,8 +1386,8 @@ function App() {
                   <span className="eyebrow">READ-ONLY SCAN</span>
                   <h3>Check another wallet</h3>
                   <div className="guest-input-row">
-                    <input type="text" placeholder="Solana wallet address" value={guestAddress} onChange={(event) => setGuestAddress(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") guestCheck(); }} disabled={guestChecking} aria-label="Wallet address to scan" />
-                    <button className="primary" onClick={guestCheck} disabled={guestChecking}>{guestChecking ? <><i className="spinner" /> Scanning…</> : "Scan"}</button>
+                    <input type="text" placeholder="Solana wallet address" value={guestAddress} onChange={(event) => { setGuestScanSource("user_wallet"); setGuestAddress(event.target.value); }} onKeyDown={(event) => { if (event.key === "Enter") guestCheck("user_wallet"); }} disabled={guestChecking} aria-label="Wallet address to scan" />
+                    <button className="primary" onClick={() => guestCheck("user_wallet")} disabled={guestChecking}>{guestChecking ? <><i className="spinner" /> Scanning…</> : "Scan"}</button>
                   </div>
                   {guestError && <div className="error-banner">{guestError}</div>}
                 </div>
