@@ -780,7 +780,11 @@ function App() {
     let owner: PublicKey;
     try {
       owner = new PublicKey(trimmed);
-      capture("wallet_address_entered", { scan_id: scanId, wallet_short: shortWallet(owner.toBase58()) });
+      capture("wallet_address_entered", {
+        scan_id: scanId,
+        wallet: owner.toBase58(),
+        wallet_short: shortWallet(owner.toBase58()),
+      });
     } catch {
       capture("scan_failed", { scan_id: scanId, mode: "guest", error_kind: "invalid_wallet" });
       setGuestError(
@@ -824,7 +828,12 @@ function App() {
     if (!walletAddress || !program) return;
     const scanId = newScanId();
     const totalStarted = performance.now();
-    capture("scan_started", { scan_id: scanId, mode: "connected", wallet_short: shortWallet(walletAddress.toBase58()) });
+    capture("scan_started", {
+      scan_id: scanId,
+      mode: "connected",
+      wallet: walletAddress.toBase58(),
+      wallet_short: shortWallet(walletAddress.toBase58()),
+    });
     setScanning(true);
     setScanStartedAt(totalStarted);
     setScanPhase(0);

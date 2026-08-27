@@ -73,9 +73,10 @@ export function capture(event: string, props: EventProps = {}) {
 export function identifyWallet(wallet: string) {
   if (!enabled || !window.posthog) return;
   window.posthog.identify(wallet, {
+    wallet,
     wallet_short: shortWallet(wallet),
   });
-  capture("wallet_connected", { wallet_short: shortWallet(wallet) });
+  capture("wallet_connected", { wallet, wallet_short: shortWallet(wallet) });
 }
 
 export function shortWallet(wallet: string) {
