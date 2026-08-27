@@ -1261,10 +1261,10 @@ function App() {
                       className="demo-wallet-link"
                       onClick={() => {
                         capture("demo_wallet_selected", { source: "primary_scan" });
-                        setGuestAddress("CEvxw99BwMjFYx8rwayWqQqWUhRcDebdJdpvNucqXLML");
+                        setGuestAddress("E3VpEoP6AbJy68cjyg1ZHo6JUtojMZmJEYtqHaNEv1F7");
                       }}
                     >
-                      Don’t have an address handy? Try a demo wallet
+                      Don’t have an address handy? Try a real wallet example
                     </button>
                     {guestError && <div className="error-banner">{guestError}</div>}
                   </div>
