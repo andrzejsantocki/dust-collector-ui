@@ -1255,7 +1255,7 @@ function App() {
                         )}
                       </button>
                     </div>
-                    <div className="trust-row">No connection · No signing · Read-only · ~5 sec typical</div>
+                    <div className="trust-row">No connection · No signing · Read-only</div>
                     <button
                       type="button"
                       className="demo-wallet-link"
@@ -1408,10 +1408,7 @@ function App() {
                     const SHOW = 15;
                     return (
                       <div className="guest-result">
-                        <div className="guest-address">
-                          {short(guestAddress.trim())}
-                          <span>{kept.length + unsupported.length} kept / not redeemable</span>
-                        </div>
+
                         <div className="guest-stats">
                           <div>
                             <span>Small-balance value</span>
