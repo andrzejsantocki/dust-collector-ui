@@ -1245,7 +1245,7 @@ function App() {
                         disabled={guestChecking}
                         aria-label="Wallet address to scan"
                       />
-                      <button className="primary scan-cta" onClick={guestCheck} disabled={guestChecking}>
+                      <button className={guestAddress.trim() ? "primary scan-cta active" : "primary scan-cta"} onClick={guestCheck} disabled={guestChecking}>
                         {guestChecking ? (
                           <>
                             <i className="spinner" /> Scanning…
@@ -1255,7 +1255,7 @@ function App() {
                         )}
                       </button>
                     </div>
-                    <div className="trust-row">No connection · No signing · Read-only</div>
+                    <div className="trust-row">Public address only · No connection · No signing · Read-only</div>
                     <button
                       type="button"
                       className="demo-wallet-link"
@@ -1264,7 +1264,8 @@ function App() {
                         setGuestAddress("E3VpEoP6AbJy68cjyg1ZHo6JUtojMZmJEYtqHaNEv1F7");
                       }}
                     >
-                      Don’t have an address handy? Try a real wallet example
+                      <span>No address handy?</span>
+                      <strong>Try a real wallet example</strong>
                     </button>
                     {guestError && <div className="error-banner">{guestError}</div>}
                   </div>
@@ -1412,11 +1413,11 @@ function App() {
                         <div className="guest-stats">
                           <div>
                             <span>Small-balance value</span>
-                            <strong>{usd(dustValue)}</strong>
+                            <strong className="value-pop" key={`dust-${dustValue.toFixed(2)}`}>{usd(dustValue)}</strong>
                           </div>
                           <div>
                             <span>Estimated net recovery</span>
-                            <strong>{fmtRecovery(netRecoveryUsd)}</strong>
+                            <strong className="value-pop" key={`net-${netRecoveryUsd.toFixed(2)}`}>{fmtRecovery(netRecoveryUsd)}</strong>
                           </div>
                           <div>
                             <span>Redeemable subaccounts</span>
