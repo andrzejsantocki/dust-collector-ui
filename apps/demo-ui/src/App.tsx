@@ -27,6 +27,7 @@ import {
   solPerOutputUnit,
   fetchPrices,
   fetchTokenMeta,
+  type ScanProgress,
 } from "./lib/api";
 import { classifyPosition, boundedFee } from "./lib/classify";
 import {
@@ -228,6 +229,10 @@ function App() {
   const [scanning, setScanning] = useState(false);
   const [scanPhase, setScanPhase] = useState(0);
   const [scanAssetCount, setScanAssetCount] = useState(0);
+  const [scanStartedAt, setScanStartedAt] = useState<number | null>(null);
+  const [scanProgressText, setScanProgressText] = useState("Preparing scan…");
+  const [scanProgressRatio, setScanProgressRatio] = useState(0);
+  const [scanEtaSeconds, setScanEtaSeconds] = useState<number | null>(null);
   const [thresholdMode, setThresholdMode] = useState<ThresholdMode>("fixed");
   const [fixedThreshold, setFixedThreshold] = useState(5);
   const [portfolioPercent, setPortfolioPercent] = useState(1);
@@ -551,10 +556,12 @@ function App() {
       owner: PublicKey,
       cfg: ConfigView | null,
       output: string,
-      onProgress?: (phase: number, assetCount?: number) => void,
+      onProgress?: (phase: number, assetCount?: number, detail?: ScanProgress) => void,
     ): Promise<{ list: Position[]; portfolioUsdc: number; solUsd: number }> => {
       const rpcStarted = performance.now();
-      const scanned = await scanTokenAccounts(connection, owner);
+      const scanned = await scanTokenAccounts(connection, owner, (detail) => {
+        onProgress?.(0, undefined, detail);
+      });
       const rpcMs = markMs(rpcStarted);
       onProgress?.(1, scanned.length);
       const pricingStarted = performance.now();
@@ -793,17 +800,30 @@ function App() {
     const totalStarted = performance.now();
     capture("scan_started", { scan_id: scanId, mode: "connected", wallet_short: shortWallet(walletAddress.toBase58()) });
     setScanning(true);
+    setScanStartedAt(totalStarted);
     setScanPhase(0);
     setScanAssetCount(0);
+    setScanProgressText("Starting wallet scan…");
+    setScanProgressRatio(0.04);
+    setScanEtaSeconds(null);
     setFatalError(null);
     try {
       const { list, portfolioUsdc, solUsd } = await analyzeWallet(
         walletAddress,
         config,
         outputMint,
-        (phase, assetCount) => {
+        (phase, assetCount, detail) => {
           setScanPhase(phase);
           if (assetCount !== undefined) setScanAssetCount(assetCount);
+          if (detail) {
+            setScanProgressText(detail.message);
+            const ratio = detail.total > 0 ? Math.min(0.45, 0.08 + (detail.done / detail.total) * 0.37) : 0.08;
+            setScanProgressRatio(ratio);
+            if (scanStartedAt) {
+              const elapsed = (performance.now() - scanStartedAt) / 1000;
+              setScanEtaSeconds(ratio > 0.05 && ratio < 0.95 ? Math.max(1, Math.round((elapsed / ratio) - elapsed)) : null);
+            }
+          }
         },
       );
       setSolPrice(solUsd);
@@ -846,6 +866,8 @@ function App() {
       setFatalError(e instanceof Error ? e.message : String(e));
     } finally {
       setScanning(false);
+      setScanStartedAt(null);
+      setScanEtaSeconds(null);
     }
   }, [walletAddress, program, config, threshold, outputMint, analyzeWallet]);
 
@@ -1260,6 +1282,8 @@ function App() {
                       <div className="scan-radar"><strong>{scanAssetCount || "…"}</strong><span>assets</span></div>
                       <div className="scan-copy">
                         <strong>Analyzing your wallet</strong>
+                        <small>{scanProgressText}{scanEtaSeconds ? ` · about ${scanEtaSeconds}s left` : ""}</small>
+                        <div className="scan-progress-bar"><span style={{ width: `${Math.round(scanProgressRatio * 100)}%` }} /></div>
                         {[
                           "Scanning token subaccounts",
                           "Checking reclaimable rent",

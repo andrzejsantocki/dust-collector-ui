@@ -3,6 +3,8 @@ const ALLOWED_ORIGINS = new Set([
   "https://www.tidify.xyz",
   "http://127.0.0.1:4173",
   "http://localhost:4173",
+  "http://127.0.0.1:4175",
+  "http://localhost:4175",
 ]);
 
 const ALLOWED_METHODS = new Set([
@@ -121,7 +123,11 @@ export default {
 
     const started = performance.now();
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
+    const methods = calls.map((call) => call.method);
+    const hardTimeoutMs = methods.includes("getTokenAccountsByOwner") || methods.includes("getMultipleAccounts")
+      ? 15000
+      : 5000;
+    const timeout = setTimeout(() => controller.abort(), hardTimeoutMs);
 
     try {
       const response = await fetch(

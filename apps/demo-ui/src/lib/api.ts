@@ -184,11 +184,20 @@ async function rpcRetry<T>(label: string, fn: () => Promise<T>): Promise<T> {
   throw new Error(`${label} failed: ${msg}`);
 }
 
+export type ScanProgress = {
+  stage: "accounts" | "mints";
+  done: number;
+  total: number;
+  message: string;
+};
+
 export async function scanTokenAccounts(
   connection: Connection,
-  owner: PublicKey
+  owner: PublicKey,
+  onProgress?: (progress: ScanProgress) => void,
 ): Promise<ScannedTokenAccount[]> {
-  const [splRes, t22Res] = await Promise.all([
+  onProgress?.({ stage: "accounts", done: 0, total: 2, message: "Reading SPL and Token-2022 accounts" });
+  const [splRes, t22Res] = await Promise.allSettled([
     rpcRetry("token account scan", () =>
       connection.getTokenAccountsByOwner(owner, { programId: TOKEN_PROGRAM_ID })
     ),
@@ -196,25 +205,33 @@ export async function scanTokenAccounts(
       connection.getTokenAccountsByOwner(owner, { programId: TOKEN_2022_PROGRAM_ID })
     ),
   ]);
+  if (splRes.status === "rejected" && t22Res.status === "rejected") {
+    throw new Error(`token scans failed: ${splRes.reason}; ${t22Res.reason}`);
+  }
   const all = [
-    ...splRes.value.map((v) => ({ ...v, tokenProgramId: TOKEN_PROGRAM_ID })),
-    ...t22Res.value.map((v) => ({ ...v, tokenProgramId: TOKEN_2022_PROGRAM_ID })),
+    ...(splRes.status === "fulfilled" ? splRes.value.value.map((v) => ({ ...v, tokenProgramId: TOKEN_PROGRAM_ID })) : []),
+    ...(t22Res.status === "fulfilled" ? t22Res.value.value.map((v) => ({ ...v, tokenProgramId: TOKEN_2022_PROGRAM_ID })) : []),
   ];
+  onProgress?.({ stage: "accounts", done: 2, total: 2, message: `Found ${all.length} token accounts` });
 
   const mints = [...new Set(all.map((v) => AccountLayout.decode(v.account.data).mint.toBase58()))];
   const mintInfos = new Map<string, AccountInfo<Buffer>>();
   const mintProgram = new Map<string, string>();
-  const chunkSize = 100;
+  const chunkSize = 50;
+  const totalChunks = Math.max(1, Math.ceil(mints.length / chunkSize));
   for (let i = 0; i < mints.length; i += chunkSize) {
+    const chunkIndex = Math.floor(i / chunkSize) + 1;
+    onProgress?.({ stage: "mints", done: chunkIndex - 1, total: totalChunks, message: `Loading mint metadata ${chunkIndex}/${totalChunks}` });
     const chunk = mints
       .slice(i, i + chunkSize)
       .map((m) => new PublicKey(m));
-    const infos = await connection.getMultipleAccountsInfo(chunk);
+    const infos = await rpcRetry("mint metadata", () => connection.getMultipleAccountsInfo(chunk));
     infos.forEach((info, idx) => {
       if (!info) return;
       mintInfos.set(chunk[idx].toBase58(), info);
       mintProgram.set(chunk[idx].toBase58(), info.owner.toBase58());
     });
+    onProgress?.({ stage: "mints", done: chunkIndex, total: totalChunks, message: `Loaded mint metadata ${chunkIndex}/${totalChunks}` });
   }
 
   const out: ScannedTokenAccount[] = [];
