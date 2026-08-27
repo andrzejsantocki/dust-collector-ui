@@ -59,6 +59,22 @@ p { color: #676960; line-height: 1.65; }
 .verified { padding: 7px 10px; border-radius: 20px; background: #eef4d5; color: #55621e; font-size: 10px; font-weight: 700; white-space: nowrap; }
 .connect-state { min-height: 420px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
 .connect-state p { max-width: 330px; margin-top: 8px; }
+.preconnect-state { display: flex; flex-direction: column; gap: 18px; }
+.primary-guest-card { margin-top: 6px; padding: 22px; border: 2px solid #25271f; box-shadow: 0 16px 0 #d5fb42, 0 26px 56px rgba(35,35,28,.12); }
+.primary-guest-card h3 { margin: 9px 0 8px; font-size: clamp(25px, 4vw, 34px); line-height: 1.04; }
+.primary-guest-card p { margin: 0 0 17px; color: #53564d; font-size: 13px; line-height: 1.55; }
+.primary-guest-card .guest-input-row { grid-template-columns: minmax(0, 1fr) 150px; gap: 10px; }
+.primary-guest-card input { min-height: 52px; border-color: #25271f; font-size: 13px; }
+.primary-guest-card .scan-cta { min-height: 52px; background: #d5fb42; color: #20221d; border-color: #20221d; box-shadow: 0 5px 0 #20221d; font-size: 13px; }
+.primary-guest-card .scan-cta span { color: #20221d; }
+.trust-row { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+.trust-row span { padding: 6px 8px; border-radius: 999px; background: #eef4d5; color: #4e5c17; font-size: 10px; font-weight: 800; }
+.demo-wallet-link { margin-top: 12px; padding: 0; border: 0; background: transparent; color: #5d6d0e; font-size: 11px; font-weight: 800; text-decoration: underline; text-underline-offset: 3px; }
+.post-scan-connect { display: grid; gap: 8px; margin-top: 14px; padding: 16px; border: 1px solid #cfd5aa; border-radius: 14px; background: #f3f8dc; }
+.post-scan-connect strong, .post-scan-connect span { display: block; }
+.post-scan-connect strong { font: 800 15px Manrope; }
+.post-scan-connect span { color: #62655a; font-size: 11px; }
+.compact-guest-card { margin-top: 20px; }
 .wallet-illustration { width: 64px; height: 64px; display: grid; place-items: center; margin-bottom: 18px; border-radius: 18px; background: #eef4d5; color: #34382b; font-size: 30px; transform: rotate(-4deg); }
 .wallet-summary { display: flex; align-items: center; gap: 12px; margin: 30px 0 22px; padding: 13px 14px; border: 1px solid #d7d4ca; border-radius: 12px; background: #f6f4ed; }
 .wallet-summary div:nth-child(2) { flex: 1; }

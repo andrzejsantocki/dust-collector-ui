@@ -775,6 +775,7 @@ function App() {
   const guestCheck = useCallback(async () => {
     const scanId = newScanId();
     const totalStarted = performance.now();
+    capture("scan_cta_clicked", { scan_id: scanId, mode: connected ? "connected" : "guest" });
     capture("scan_started", { scan_id: scanId, mode: "guest" });
     const trimmed = guestAddress.trim();
     let owner: PublicKey;
@@ -822,7 +823,7 @@ function App() {
     } finally {
       setGuestChecking(false);
     }
-  }, [guestAddress, readOnlyProgram, fetchConfigView, analyzeWallet, outputMint]);
+  }, [guestAddress, readOnlyProgram, fetchConfigView, analyzeWallet, outputMint, connected]);
 
   const scan = useCallback(async () => {
     if (!walletAddress || !program) return;
@@ -1133,7 +1134,7 @@ function App() {
 
       <main>
         <nav className="steps" aria-label="Tidify progress">
-          {["Preview", "Set threshold", "Review", "Approve", "Complete"].map((label, index) => {
+          {["Scan", "Set threshold", "Review", "Approve", "Complete"].map((label, index) => {
             const activeIndex =
               stage === "setup"
                 ? connected
@@ -1189,7 +1190,7 @@ function App() {
             <div className="hero-card">
               <span className="eyebrow">MAKE THE SMALL STUFF USEFUL</span>
               <h1>Turn leftover tokens<br /><em>into usable value.</em></h1>
-              <p>Connect your Solana wallet — or paste any address to preview. Tidify identifies empty and dust token accounts, estimates what each one is worth, and proposes the economical action. You choose every account that gets touched.</p>
+              <p>Paste a wallet first. Tidify estimates recoverable value read-only, then asks you to connect only after there is something worth cleaning up.</p>
               <div className="hero-metrics">
                 <div>
                   {lastTx ? (
@@ -1223,18 +1224,51 @@ function App() {
             <div className="setup-panel">
               <div className="panel-heading">
                 <div>
-                  <span className="eyebrow">01 / SETUP</span>
-                  <h2>Connect &amp; set your threshold</h2>
+                  <span className="eyebrow">01 / SCAN</span>
+                  <h2>See how much your wallet can recover</h2>
                 </div>
               </div>
 
               {!connected ? (
-                <div className="connect-state">
-                  <div className="wallet-illustration">◫</div>
-                  <h3>Connect a Solana wallet</h3>
-                  <p>Choose a supported wallet to continue on Solana Mainnet. Your keys always remain in your wallet.</p>
-                  <div className="wallet-button primary-wrap">
-                    <WalletMultiButton />
+                <div className="preconnect-state">
+                  <div className="guest-card primary-guest-card">
+                    <span className="eyebrow">READ-ONLY SCAN</span>
+                    <h3>See how much your wallet can recover</h3>
+                    <p>Paste a Solana wallet address. Tidify checks token accounts, estimates reclaimable value, and shows the opportunity before you connect.</p>
+                    <div className="guest-input-row">
+                      <input
+                        type="text"
+                        placeholder="Paste your Solana wallet address"
+                        value={guestAddress}
+                        onChange={(event) => setGuestAddress(event.target.value)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") guestCheck();
+                        }}
+                        disabled={guestChecking}
+                        aria-label="Wallet address to scan"
+                      />
+                      <button className="primary scan-cta" onClick={guestCheck} disabled={guestChecking}>
+                        {guestChecking ? (
+                          <>
+                            <i className="spinner" /> Scanning…
+                          </>
+                        ) : (
+                          <>Scan wallet <span>→</span></>
+                        )}
+                      </button>
+                    </div>
+                    <div className="trust-row"><span>No connection</span><span>No signing</span><span>Read-only</span><span>~5s typical</span></div>
+                    <button
+                      type="button"
+                      className="demo-wallet-link"
+                      onClick={() => {
+                        capture("demo_wallet_selected", { source: "primary_scan" });
+                        setGuestAddress("EGrJmVpDVmJ9sSoupdMnJfJ5WQxbdNraLKi5bMtujNwb");
+                      }}
+                    >
+                      Try with a demo wallet
+                    </button>
+                    {guestError && <div className="error-banner">{guestError}</div>}
                   </div>
                 </div>
               ) : (
@@ -1341,37 +1375,18 @@ function App() {
                 </>
               )}
 
-              <div className="guest-card">
-                <span className="eyebrow">GUEST PREVIEW</span>
-                <h3>Preview any wallet — no connection required</h3>
-                <p>
-                  Paste a Solana wallet address to estimate how much usable value Tidify could recover.
-                  Read-only: nothing is signed, sent, or approved.
-                </p>
-                <div className="guest-input-row">
-                  <input
-                    type="text"
-                    placeholder="Solana wallet address"
-                    value={guestAddress}
-                    onChange={(event) => setGuestAddress(event.target.value)}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter") guestCheck();
-                    }}
-                    disabled={guestChecking}
-                    aria-label="Wallet address to preview"
-                  />
-                  <button className="primary" onClick={guestCheck} disabled={guestChecking}>
-                    {guestChecking ? (
-                      <>
-                        <i className="spinner" /> Checking…
-                      </>
-                    ) : (
-                      "Estimate"
-                    )}
-                  </button>
+              {connected && (
+                <div className="guest-card compact-guest-card">
+                  <span className="eyebrow">READ-ONLY SCAN</span>
+                  <h3>Check another wallet</h3>
+                  <div className="guest-input-row">
+                    <input type="text" placeholder="Solana wallet address" value={guestAddress} onChange={(event) => setGuestAddress(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") guestCheck(); }} disabled={guestChecking} aria-label="Wallet address to scan" />
+                    <button className="primary" onClick={guestCheck} disabled={guestChecking}>{guestChecking ? <><i className="spinner" /> Scanning…</> : "Scan"}</button>
+                  </div>
+                  {guestError && <div className="error-banner">{guestError}</div>}
                 </div>
-                {guestError && <div className="error-banner">{guestError}</div>}
-                {guestResult &&
+              )}
+              {guestResult &&
                   (() => {
                     const actionable = guestResult.list.filter(
                       (p) =>
@@ -1478,7 +1493,13 @@ function App() {
                       </div>
                     );
                   })()}
-              </div>
+              {!connected && guestResult && (
+                <div className="post-scan-connect">
+                  <strong>Ready to clean it up?</strong>
+                  <span>Connect wallet only after the read-only scan shows value.</span>
+                  <div className="wallet-button primary-wrap"><WalletMultiButton /></div>
+                </div>
+              )}
             </div>
           </section>
         )}
