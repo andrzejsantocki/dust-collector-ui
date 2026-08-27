@@ -85,6 +85,29 @@
         td, th { padding-left: 10px; padding-right: 10px; }
       }
     </style>
+    <script>
+      (function() {
+        var key = "phc_zywrJztmi7b5JQeYBkgrJhbjwxiMSZwKvDHz258opKd5";
+        var host = "https://us.i.posthog.com";
+        if (!key) return;
+        var script = document.createElement("script");
+        script.async = true;
+        script.src = host.replace(/\/$/, "") + "/static/array.js";
+        script.onload = function() {
+          if (!window.posthog) return;
+          window.posthog.init(key, {
+            api_host: host,
+            capture_pageview: true,
+            capture_pageleave: true,
+            request_batching: false,
+            session_recording: { maskAllInputs: true }
+          });
+          window.posthog.capture("docs_entered", { path: window.location.pathname });
+          window.posthog.capture("page_view", { page: "docs", path: window.location.pathname });
+        };
+        document.head.appendChild(script);
+      })();
+    </script>
   </head>
   <body>
     <div class="layout">
