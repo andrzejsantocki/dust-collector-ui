@@ -193,6 +193,30 @@ const usd = (value: number) =>
 const short = (value: string) =>
   value.length > 14 ? `${value.slice(0, 6)}…${value.slice(-4)}` : value;
 
+function formatScanEta(seconds: number | null, assetCount: number): string {
+  if (seconds !== null) {
+    if (seconds < 5) return "Finishing up — less than 5s left.";
+    if (seconds < 60) return `About ${seconds}s left.`;
+    const minutes = Math.max(1, Math.ceil(seconds / 60));
+    return `About ${minutes} minute${minutes === 1 ? "" : "s"} left.`;
+  }
+  if (assetCount >= 1000) return "Large wallet detected — likely 1–3 minutes. Coffee is optional; panic is not.";
+  if (assetCount >= 300) return "Busy wallet detected — likely 30–90 seconds. We are counting the dust bunnies.";
+  if (assetCount >= 80) return "Moderate wallet — likely 15–45 seconds.";
+  return "Usually under 15 seconds.";
+}
+
+function scanMood(assetCount: number, ratio: number): string {
+  if (assetCount >= 1000) {
+    if (ratio < 0.25) return "This wallet brought a whole attic. Sorting carefully.";
+    if (ratio < 0.6) return "Still alive — just negotiating with 1,000+ ATAs.";
+    return "Almost through the token archaeology.";
+  }
+  if (assetCount >= 300) return "Dust herd spotted. Rounding it up.";
+  if (ratio > 0.7) return "Almost there.";
+  return "Scanning safely.";
+}
+
 const timeAgo = (blockTime: number | null): string => {
   if (blockTime === null) return "";
   const seconds = Math.max(0, Math.floor(Date.now() / 1000) - blockTime);
@@ -233,6 +257,8 @@ function App() {
   const [scanProgressText, setScanProgressText] = useState("Preparing scan…");
   const [scanProgressRatio, setScanProgressRatio] = useState(0);
   const [scanEtaSeconds, setScanEtaSeconds] = useState<number | null>(null);
+  const scanEtaText = formatScanEta(scanEtaSeconds, scanAssetCount);
+  const scanMoodText = scanMood(scanAssetCount, scanProgressRatio);
   const [thresholdMode, setThresholdMode] = useState<ThresholdMode>("fixed");
   const [fixedThreshold, setFixedThreshold] = useState(5);
   const [portfolioPercent, setPortfolioPercent] = useState(1);
@@ -1282,7 +1308,8 @@ function App() {
                       <div className="scan-radar"><strong>{scanAssetCount || "…"}</strong><span>assets</span></div>
                       <div className="scan-copy">
                         <strong>Analyzing your wallet</strong>
-                        <small>{scanProgressText}{scanEtaSeconds ? ` · about ${scanEtaSeconds}s left` : ""}</small>
+                        <small>{scanProgressText} · {scanEtaText}</small>
+                        <em className="scan-joke">{scanMoodText}</em>
                         <div className="scan-progress-bar"><span style={{ width: `${Math.round(scanProgressRatio * 100)}%` }} /></div>
                         {[
                           "Scanning token subaccounts",
