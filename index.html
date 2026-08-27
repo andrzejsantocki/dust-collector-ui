@@ -9,7 +9,7 @@
     <link rel="canonical" href="https://tidify.xyz/" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Tidify" />
-    <meta property="og:title" content="Tidify | Recover Solana Token Dust" />
+    <meta property="og:title" content="Tidify | Solana Token Dust Cleaner" />
     <meta property="og:description" content="Clean up dozens of low-balance Solana tokens in one click. Convert token dust, close unused accounts, and reclaim SOL locked as rent." />
     <meta property="og:url" content="https://tidify.xyz/" />
     <meta property="og:image" content="https://tidify.xyz/og-image.png" />
@@ -17,7 +17,7 @@
     <meta property="og:image:height" content="630" />
     <meta property="og:locale" content="en_US" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Tidify | Recover Solana Token Dust" />
+    <meta name="twitter:title" content="Tidify | Solana Token Dust Cleaner" />
     <meta name="twitter:description" content="Clean up dozens of low-balance Solana tokens in one click. Convert token dust, close unused accounts, and reclaim SOL locked as rent." />
     <meta name="twitter:image" content="https://tidify.xyz/og-image.png" />
     <link rel="icon" href="./favicon.ico?v=tidify-2" sizes="any" />
@@ -25,7 +25,7 @@
     <link rel="icon" type="image/svg+xml" href="./favicon.svg?v=tidify-2" />
     <link rel="apple-touch-icon" href="./apple-touch-icon.png?v=tidify-2" sizes="180x180" />
     <link rel="shortcut icon" href="./favicon.ico?v=tidify-2" />
-    <title>Tidify | Recover Solana Token Dust</title>
+    <title>Tidify | Solana Token Dust Cleaner</title>
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -52,7 +52,7 @@
       "mainEntity": [
         {
           "@type": "Question",
-          "name": "What is token dust?",
+          "name": "What is Solana token dust?",
           "acceptedAnswer": { "@type": "Answer", "text": "Small leftover SPL Token or Token-2022 balances that sit in a Solana wallet after swaps, airdrops, or protocol claims. Each one is too small to use but still occupies an account that holds rent." }
         },
         {
@@ -79,6 +79,16 @@
           "@type": "Question",
           "name": "Which network does Tidify run on?",
           "acceptedAnswer": { "@type": "Answer", "text": "Solana mainnet. The Tidify program and its fee configuration live on-chain, and every action is a normal, visible Solana transaction." }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I close unused Solana token accounts?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Tidify scans your wallet, lists every token account with a low balance, and builds a transaction set that closes the unused accounts, converts usable dust through Jupiter, and returns the recovered SOL to your wallet. You review the plan and sign each transaction yourself." }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I reclaim SOL locked as rent from token accounts?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes. Every SPL token account on Solana holds a rent deposit in SOL, and closing an unused account refunds it. Tidify includes rent reclaims in its preview, so you see exactly how much SOL comes back before you approve." }
         }
       ]
     }
@@ -86,6 +96,33 @@
     <script type="module" crossorigin src="/assets/index-CkZc_x0V.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/react-vendor-D0rV43l_.js">
     <link rel="stylesheet" crossorigin href="/assets/index-CkRO1QgQ.css">
+    <!-- GSC: after verifying in Search Console add
+         <meta name="google-site-verification" content="TOKEN" /> here -->
+    <meta http-equiv="Content-Security-Policy" content="frame-ancestors 'none'; base-uri 'self'" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <script>
+    (function() {
+      var key = "phc_zywrJztmi7b5JQeYBkgrJhbjwxiMSZwKvDHz258opKd5";
+      var host = "https://us.i.posthog.com";
+      if (!key) return;
+      var script = document.createElement("script");
+      script.async = true;
+      script.src = host.replace(/\/$/, "") + "/static/array.js";
+      script.onload = function() {
+        if (!window.posthog) return;
+        window.posthog.init(key, {
+          api_host: host,
+          capture_pageview: true,
+          capture_pageleave: true,
+          request_batching: false,
+          session_recording: { maskAllInputs: true }
+        });
+        window.posthog.capture("home_entered", { path: window.location.pathname });
+        window.posthog.capture("page_view", { page: "home", path: window.location.pathname });
+      };
+      document.head.appendChild(script);
+    })();
+    </script>
   </head>
   <body>
     <div id="root">
@@ -104,7 +141,7 @@
       <main>
         <section aria-labelledby="tidify-h1">
           <span class="eyebrow">MAKE THE SMALL STUFF USEFUL</span>
-          <h1 id="tidify-h1">Turn leftover tokens into usable value</h1>
+          <h1 id="tidify-h1">Turn Solana Token Dust into Usable SOL</h1>
           <p>
             Tidify identifies empty token accounts and scattered Solana token
             balances — dust left over from swaps, airdrops, and protocol claims —
@@ -149,7 +186,7 @@
         <section id="faq" aria-labelledby="faq-title">
           <h2 id="faq-title">FAQ</h2>
           <details>
-            <summary>What is token dust?</summary>
+            <summary>What is Solana token dust?</summary>
             <p>Small leftover SPL Token or Token-2022 balances that sit in a Solana wallet after swaps, airdrops, or protocol claims. Each one is too small to use but still occupies an account that holds rent.</p>
           </details>
           <details>
@@ -171,6 +208,14 @@
           <details>
             <summary>Which network does Tidify run on?</summary>
             <p>Solana mainnet. The Tidify program and its fee configuration live on-chain, and every action is a normal, visible Solana transaction.</p>
+          </details>
+          <details>
+            <summary>How do I close unused Solana token accounts?</summary>
+            <p>Tidify scans your wallet, lists every token account with a low balance, and builds a transaction set that closes the unused accounts, converts usable dust through Jupiter, and returns the recovered SOL to your wallet. You review the plan and sign each transaction yourself.</p>
+          </details>
+          <details>
+            <summary>Can I reclaim SOL locked as rent from token accounts?</summary>
+            <p>Yes. Every SPL token account on Solana holds a rent deposit in SOL, and closing an unused account refunds it. Tidify includes rent reclaims in its preview, so you see exactly how much SOL comes back before you approve.</p>
           </details>
         </section>
 

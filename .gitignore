@@ -8,3 +8,4 @@ dist/
 .wrangler/
 .dev.vars
 apps/demo-ui/dist/
+scripts/rank_check.py
