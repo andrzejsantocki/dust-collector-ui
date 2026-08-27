@@ -1232,9 +1232,7 @@ function App() {
               {!connected ? (
                 <div className="preconnect-state">
                   <div className="guest-card primary-guest-card">
-                    <span className="eyebrow">READ-ONLY SCAN</span>
-                    <h3>See how much your wallet can recover</h3>
-                    <p>Paste a Solana wallet address. Tidify checks token accounts, estimates reclaimable value, and shows the opportunity before you connect.</p>
+                    <p>Paste a Solana address to see how much value may be recoverable. No connection required.</p>
                     <div className="guest-input-row">
                       <input
                         type="text"
@@ -1253,20 +1251,20 @@ function App() {
                             <i className="spinner" /> Scanning…
                           </>
                         ) : (
-                          <>Scan wallet <span>→</span></>
+                          <>Check my wallet <span>→</span></>
                         )}
                       </button>
                     </div>
-                    <div className="trust-row"><span>No connection</span><span>No signing</span><span>Read-only</span><span>~5s typical</span></div>
+                    <div className="trust-row">No connection · No signing · Read-only · ~5 sec typical</div>
                     <button
                       type="button"
                       className="demo-wallet-link"
                       onClick={() => {
                         capture("demo_wallet_selected", { source: "primary_scan" });
-                        setGuestAddress("EGrJmVpDVmJ9sSoupdMnJfJ5WQxbdNraLKi5bMtujNwb");
+                        setGuestAddress("CEvxw99BwMjFYx8rwayWqQqWUhRcDebdJdpvNucqXLML");
                       }}
                     >
-                      Try with a demo wallet
+                      Don’t have an address handy? Try a demo wallet
                     </button>
                     {guestError && <div className="error-banner">{guestError}</div>}
                   </div>
