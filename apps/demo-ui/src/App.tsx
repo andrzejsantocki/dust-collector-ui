@@ -1463,7 +1463,7 @@ function App() {
                                 />
                                 <span className="guest-row-name">
                                   <strong>{p.symbol}</strong>
-                                  <small>{p.name} · {p.amount}</small>
+                                  <small>{p.name} · {p.amount}{p.amountRaw === 0n ? " · Verified 0" : ""}</small>
                                 </span>
                                 <span className="guest-row-value">
                                   {p.valueUsdc === null ? "Unknown" : usd(p.valueUsdc)}
@@ -1725,7 +1725,7 @@ function App() {
                                       symbol={position.symbol}
                                     />
                                     <span className="token-name"><strong>{position.symbol}</strong><small>{position.name} · {position.tokenProgram}</small></span>
-                                    <span className="token-balance"><strong>{position.amount}</strong><small>{position.valueUsdc === null ? "Unknown value" : usd(position.valueUsdc)}</small></span>
+                                    <span className="token-balance"><strong>{position.amount}</strong>{position.amountRaw === 0n && <span className="verified-zero">Verified 0</span>}<small>{position.valueUsdc === null ? "Unknown value" : usd(position.valueUsdc)}</small></span>
                                     <span className={`action-badge ${position.action}`}><i />{ACTION_LABEL[position.action]}</span>
                                     <span
                                       className={`chevron ${expanded === position.id ? "expanded" : ""}`}
@@ -1834,7 +1834,7 @@ function App() {
                       logo={position.logo ?? logoOverrides[position.mint]}
                       symbol={position.symbol}
                     />
-                    <span><strong>{position.symbol}</strong><small>{position.amount} · {short(position.tokenAccount)}</small></span>
+                    <span><strong>{position.symbol}</strong><small>{position.amount}{position.amountRaw === 0n ? " · Verified 0" : ""} · {short(position.tokenAccount)}</small></span>
                     <span className={`action-badge ${position.action}`}><i />{ACTION_LABEL[position.action]}</span>
                   </div>
                 ))}

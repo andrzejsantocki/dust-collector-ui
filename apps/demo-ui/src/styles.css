@@ -164,6 +164,7 @@ p { color: #676960; line-height: 1.65; }
 .token-name small, .token-balance small { margin-top: 3px; color: #81837b; font-size: 9px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .token-balance { text-align: right; }
 .token-balance strong { font-size: 12px; }
+.verified-zero { display: inline-block; margin-top: 3px; padding: 2px 6px; border-radius: 6px; background: #eef7c8; color: #657326; font-size: 8px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
 .action-badge { justify-self: end; display: inline-flex; align-items: center; gap: 7px; padding: 6px 8px; border-radius: 6px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; white-space: nowrap; }
 .action-badge i { width: 6px; height: 6px; border-radius: 50%; }
 .action-badge.close { background: #e7ecdd; color: #485335; }.action-badge.close i { background:#759044; }
