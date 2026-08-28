@@ -1345,43 +1345,6 @@ function App() {
                     </div>
                   )}
 
-                  <fieldset className="threshold-card">
-                    <legend>Your destination currency</legend>
-                    <div className="output-dropdown">
-                      {outputOpen && <div className="dropdown-backdrop" onClick={() => setOutputOpen(false)} />}
-                      <button type="button" className="output-select" onClick={() => setOutputOpen((v) => !v)}>
-                        <span className="token-icon-wrap">
-                          <img src={outputCurrency.icon} alt="" className="token-icon" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }} />
-                          <span className="token-icon-fallback">{outputCurrency.label[0]}</span>
-                        </span>
-                        <span className="output-select-label">{outputCurrency.label}</span>
-                        <span className="output-select-sub">{outputCurrency.sub}</span>
-                        <span className="output-select-chev">▾</span>
-                      </button>
-                      {outputOpen && (
-                        <div className="output-menu">
-                          {OUTPUT_CURRENCY_OPTIONS.map((opt) => (
-                            <button type="button" key={opt.mint} className={opt.mint === outputMint ? "output-option chosen" : "output-option"} onClick={() => { setOutputMint(opt.mint); setOutputOpen(false); }}>
-                              <span className="token-icon-wrap">
-                                <img src={opt.icon} alt="" className="token-icon" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }} />
-                                <span className="token-icon-fallback">{opt.label[0]}</span>
-                              </span>
-                              <span className="output-option-label">{opt.label}</span>
-                              <small>{opt.sub}</small>
-                              {opt.mint === outputMint && <span className="check">✓</span>}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <small className="output-hint">
-                      Balances in this currency are kept as your destination and hidden from the accounts proposed for tidying.
-                    </small>
-                    <small className="output-hint rent-hint">
-                      Account rent is returned by Solana in SOL. Keeping it as SOL avoids an extra swap, reducing network fees, slippage, and transaction complexity.
-                    </small>
-                  </fieldset>
-
                   {scanning ? (
                     <div className="scan-event" role="status" aria-live="polite">
                       <div className="scan-radar"><strong>{scanAssetCount || "…"}</strong><span>assets</span></div>
@@ -1588,6 +1551,43 @@ function App() {
               </div>
 
               <div id="review-threshold">
+                <fieldset className="threshold-card">
+                  <legend>Your destination currency</legend>
+                  <div className="output-dropdown">
+                    {outputOpen && <div className="dropdown-backdrop" onClick={() => setOutputOpen(false)} />}
+                    <button type="button" className="output-select" onClick={() => setOutputOpen((v) => !v)}>
+                      <span className="token-icon-wrap">
+                        <img src={outputCurrency.icon} alt="" className="token-icon" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }} />
+                        <span className="token-icon-fallback">{outputCurrency.label[0]}</span>
+                      </span>
+                      <span className="output-select-label">{outputCurrency.label}</span>
+                      <span className="output-select-sub">{outputCurrency.sub}</span>
+                      <span className="output-select-chev">▾</span>
+                    </button>
+                    {outputOpen && (
+                      <div className="output-menu">
+                        {OUTPUT_CURRENCY_OPTIONS.map((opt) => (
+                          <button type="button" key={opt.mint} className={opt.mint === outputMint ? "output-option chosen" : "output-option"} onClick={() => { setOutputMint(opt.mint); setOutputOpen(false); }}>
+                            <span className="token-icon-wrap">
+                              <img src={opt.icon} alt="" className="token-icon" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }} />
+                              <span className="token-icon-fallback">{opt.label[0]}</span>
+                            </span>
+                            <span className="output-option-label">{opt.label}</span>
+                            <small>{opt.sub}</small>
+                            {opt.mint === outputMint && <span className="check">✓</span>}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <small className="output-hint">
+                    Balances in this currency are kept as your destination and hidden from the accounts proposed for tidying.
+                  </small>
+                  <small className="output-hint rent-hint">
+                    Account rent is returned by Solana in SOL. Keeping it as SOL avoids an extra swap, reducing network fees, slippage, and transaction complexity.
+                  </small>
+                </fieldset>
+
                 <fieldset className="threshold-card">
                   <legend>Which small balances should Tidify consider?</legend>
                   <label className={thresholdMode === "fixed" ? "radio-option chosen" : "radio-option"}>
