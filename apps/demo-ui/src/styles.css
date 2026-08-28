@@ -285,11 +285,38 @@ strong,dd,.token-balance{font-variant-numeric:tabular-nums}
 .network-pill.live span { background: #3fbf5a; box-shadow: 0 0 8px #3fbf5a; }
 .verified.warn { background: #f7e8d4; color: #8a5b22; }
 .wallet-button { display: inline-flex; align-items: center; }
-.wallet-button .wallet-adapter-button { height: 40px; border-radius: 10px; background: #20221d; color: #fff; font-family: "DM Sans", sans-serif; font-size: 12px; font-weight: 700; }
+/* Neutralize @solana/wallet-adapter-react-ui base styles so the button fits
+   its wrapper: flexible height, no text wrap/clipping, inline icon+label. */
+.wallet-button .wallet-adapter-button,
+.wallet-button .wallet-adapter-button-trigger,
+.wallet-button .wallet-adapter-button[aria-label] {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: auto !important;
+  min-height: 40px;
+  line-height: normal !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  gap: 8px;
+  margin: 0;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 10px;
+  box-shadow: none;
+  background: #20221d;
+  color: #fff;
+  font-family: "DM Sans", sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+}
 .wallet-button .wallet-adapter-button:hover { background: #34372f; }
-.wallet-button .wallet-adapter-button-trigger { background: #20221d; }
-.wallet-button .wallet-adapter-button[aria-label] { background: #20221d; }
-.wallet-button.primary-wrap .wallet-adapter-button { background: #22241e; box-shadow: 0 5px 0 #d5fb42; min-height: 45px; padding: 0 18px; }
+.wallet-button.primary-wrap .wallet-adapter-button {
+  min-height: 45px;
+  padding: 0 18px;
+  background: #22241e;
+  box-shadow: 0 5px 0 #d5fb42;
+}
 /* Wallet Adapter portals must sit above animated panes and the sticky command bar. */
 .wallet-adapter-modal-overlay { z-index: 100000 !important; }
 .wallet-adapter-modal-wrapper { z-index: 100001 !important; max-height: calc(100dvh - 24px); overflow-y: auto; }
