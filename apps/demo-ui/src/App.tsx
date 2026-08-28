@@ -1382,24 +1382,6 @@ function App() {
                     </small>
                   </fieldset>
 
-                  <fieldset className="threshold-card">
-                    <legend>Which small balances should Tidify consider?</legend>
-                    <label className={thresholdMode === "fixed" ? "radio-option chosen" : "radio-option"}>
-                      <input type="radio" checked={thresholdMode === "fixed"} onChange={() => setThresholdMode("fixed")} />
-                      <span className="fake-radio" />
-                      <span className="option-copy"><strong>Fixed USDC value <b>Suggested</b></strong><small>Each position below this amount</small></span>
-                      <span className="input-shell">$<input aria-label="Fixed USDC threshold" type="number" min="0" step="0.5" value={fixedThreshold} onChange={(event) => setFixedThreshold(Math.max(0, Number(event.target.value)))} /></span>
-                    </label>
-                    <label className={thresholdMode === "percent" ? "radio-option chosen" : "radio-option"}>
-                      <input type="radio" checked={thresholdMode === "percent"} onChange={() => setThresholdMode("percent")} />
-                      <span className="fake-radio" />
-                      <span className="option-copy"><strong>Percentage of portfolio</strong><small>{portfolioPercent}% of {fmtOutput(portfolioOutput)} = {fmtOutput(thresholdOutput)}</small></span>
-                      <span className="input-shell"><input aria-label="Portfolio percentage" type="number" min="0" max="10" step="0.1" value={portfolioPercent} onChange={(event) => setPortfolioPercent(Math.max(0, Number(event.target.value)))} />%</span>
-                    </label>
-                  </fieldset>
-
-                  <div className="threshold-result"><span>Effective tidy threshold</span><strong>{thresholdMode === "fixed" ? `${usd(threshold)} USDC` : fmtOutput(thresholdOutput)}</strong><small>A proposal limit, never an automatic approval.</small></div>
-
                   {scanning ? (
                     <div className="scan-event" role="status" aria-live="polite">
                       <div className="scan-radar"><strong>{scanAssetCount || "…"}</strong><span>assets</span></div>
@@ -1605,6 +1587,26 @@ function App() {
                 <button className="secondary" onClick={restart}>↻ Rescan</button>
               </div>
 
+              <div id="review-threshold">
+                <fieldset className="threshold-card">
+                  <legend>Which small balances should Tidify consider?</legend>
+                  <label className={thresholdMode === "fixed" ? "radio-option chosen" : "radio-option"}>
+                    <input type="radio" checked={thresholdMode === "fixed"} onChange={() => setThresholdMode("fixed")} />
+                    <span className="fake-radio" />
+                    <span className="option-copy"><strong>Fixed USDC value <b>Suggested</b></strong><small>Each position below this amount</small></span>
+                    <span className="input-shell">$<input aria-label="Fixed USDC threshold" type="number" min="0" step="0.5" value={fixedThreshold} onChange={(event) => setFixedThreshold(Math.max(0, Number(event.target.value)))} /></span>
+                  </label>
+                  <label className={thresholdMode === "percent" ? "radio-option chosen" : "radio-option"}>
+                    <input type="radio" checked={thresholdMode === "percent"} onChange={() => setThresholdMode("percent")} />
+                    <span className="fake-radio" />
+                    <span className="option-copy"><strong>Percentage of portfolio</strong><small>{portfolioPercent}% of {fmtOutput(portfolioOutput)} = {fmtOutput(thresholdOutput)}</small></span>
+                    <span className="input-shell"><input aria-label="Portfolio percentage" type="number" min="0" max="10" step="0.1" value={portfolioPercent} onChange={(event) => setPortfolioPercent(Math.max(0, Number(event.target.value)))} />%</span>
+                  </label>
+                </fieldset>
+
+                <div className="threshold-result"><span>Effective tidy threshold</span><strong>{thresholdMode === "fixed" ? `${usd(threshold)} USDC` : fmtOutput(thresholdOutput)}</strong><small>A proposal limit, never an automatic approval.</small></div>
+              </div>
+
               <div className="recovery-hero">
                 <div>
                   <span className="eyebrow">RECOVERABLE</span>
@@ -1632,7 +1634,13 @@ function App() {
                 <div><span>Balance threshold</span><strong>{thresholdMode === "fixed" ? `${usd(threshold)} USDC` : fmtOutput(thresholdOutput)}</strong></div>
                 <div><span>Token valued portfolio</span><strong>{fmtOutput(portfolioOutput)}</strong></div>
                 <div><span>Below threshold</span><strong>{classified.filter((item) => item.valueUsdc !== null && item.valueUsdc <= threshold).length} accounts</strong></div>
-                <button onClick={() => restart()}>Edit definition</button>
+                <button
+                  onClick={() =>
+                    document.querySelector("#review-threshold")?.scrollIntoView({ behavior: "smooth", block: "center" })
+                  }
+                >
+                  Edit definition
+                </button>
               </div>
 
               <div className="selection-tools">
