@@ -85,6 +85,7 @@ p { color: #676960; line-height: 1.65; }
 .wallet-summary .check { width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; background: #d5fb42; font-size: 11px; }
 .threshold-card { margin: 0; padding: 0; border: 0; }
 .threshold-card legend { margin-bottom: 10px; font-size: 12px; font-weight: 700; }
+#review-threshold { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
 .radio-option { min-height: 76px; display: flex; align-items: center; gap: 12px; margin-bottom: 9px; padding: 13px; border: 1px solid #d7d4ca; border-radius: 12px; cursor: pointer; transition: .18s ease; }
 .radio-option.chosen { border-color: #9bad3d; background: #f7fbe9; box-shadow: inset 0 0 0 1px #d5fb42; }
 .radio-option > input { position: absolute; opacity: 0; pointer-events: none; }
@@ -97,10 +98,6 @@ p { color: #676960; line-height: 1.65; }
 .option-copy small { margin-top: 4px; color: #777970; font-size: 10px; }
 .input-shell { height: 39px; display: flex; align-items: center; gap: 4px; padding: 0 9px; border: 1px solid #cfcdbf; border-radius: 8px; background: #fff; color: #75776f; font-size: 12px; }
 .input-shell input { width: 50px; padding: 0; border: 0; outline: 0; background: transparent; color: #22231f; font-weight: 700; text-align: right; }
-.threshold-result { display: grid; grid-template-columns: 1fr auto; align-items: center; margin: 17px 0; padding: 13px 15px; border-left: 3px solid #d5fb42; background: #f0eee6; }
-.threshold-result span { color: #73756c; font-size: 10px; text-transform: uppercase; letter-spacing: .08em; }
-.threshold-result strong { font: 700 14px Manrope; }
-.threshold-result small { grid-column: 1 / -1; margin-top: 5px; color: #898b82; font-size: 9px; }
 .output-hint{display:block;margin-top:10px;color:#85877f;font-size:9px;line-height:1.5}
 .output-hint.rent-hint{padding:9px 10px;border-left:2px solid #d5fb42;background:#f1f3e7;color:#62655a}
 .output-dropdown{position:relative}
@@ -509,6 +506,7 @@ strong,dd,.token-balance{font-variant-numeric:tabular-nums}
 @media (max-width: 980px) {
   .marketing-sections { grid-template-columns: 1fr; }
   .marketing-steps { grid-template-columns: repeat(2, 1fr); }
+  #review-threshold { grid-template-columns: 1fr; }
 }
 @media (max-width: 680px) {
   .marketing-sections { margin-top: 20px; }

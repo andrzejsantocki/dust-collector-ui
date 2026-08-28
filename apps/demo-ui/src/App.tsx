@@ -1581,10 +1581,7 @@ function App() {
                     )}
                   </div>
                   <small className="output-hint">
-                    Balances in this currency are kept as your destination and hidden from the accounts proposed for tidying.
-                  </small>
-                  <small className="output-hint rent-hint">
-                    Account rent is returned by Solana in SOL. Keeping it as SOL avoids an extra swap, reducing network fees, slippage, and transaction complexity.
+                    Kept as your destination — never proposed for tidying.
                   </small>
                 </fieldset>
 
@@ -1603,8 +1600,6 @@ function App() {
                     <span className="input-shell"><input aria-label="Portfolio percentage" type="number" min="0" max="10" step="0.1" value={portfolioPercent} onChange={(event) => setPortfolioPercent(Math.max(0, Number(event.target.value)))} />%</span>
                   </label>
                 </fieldset>
-
-                <div className="threshold-result"><span>Effective tidy threshold</span><strong>{thresholdMode === "fixed" ? `${usd(threshold)} USDC` : fmtOutput(thresholdOutput)}</strong><small>A proposal limit, never an automatic approval.</small></div>
               </div>
 
               <div className="recovery-hero">
