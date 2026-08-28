@@ -303,29 +303,6 @@ function App() {
     config: ConfigView | null;
   } | null>(null);
   const [guestScanSource, setGuestScanSource] = useState<"user_wallet" | "real_wallet_example">("user_wallet");
-  const [scanBtnPress, setScanBtnPress] = useState(false);
-  const typeTimer = useRef<number | null>(null);
-  // "Hand-typed" fill of the guest input when the demo wallet is chosen, then
-  // a brief press animation on the scan button. Fast (~0.5s) so it reads as
-  // typing, not waiting.
-  const typeAddress = useCallback((full: string) => {
-    if (typeTimer.current !== null) window.clearInterval(typeTimer.current);
-    setGuestAddress("");
-    let i = 0;
-    const step = Math.max(2, Math.ceil(full.length / 18));
-    typeTimer.current = window.setInterval(() => {
-      i += step;
-      if (i >= full.length) {
-        setGuestAddress(full);
-        if (typeTimer.current !== null) window.clearInterval(typeTimer.current);
-        typeTimer.current = null;
-        setScanBtnPress(true);
-        window.setTimeout(() => setScanBtnPress(false), 300);
-      } else {
-        setGuestAddress(full.slice(0, i));
-      }
-    }, 26);
-  }, []);
   // Async on-chain metadata icons (mint -> logo URL) resolved after a scan;
   // positions render the letter avatar until an icon arrives.
   const [logoOverrides, setLogoOverrides] = useState<Record<string, string>>({});
@@ -1315,27 +1292,20 @@ function App() {
                         type="text"
                         placeholder="Paste your Solana wallet address"
                         value={guestAddress}
-                        onChange={(event) => {
-                          if (typeTimer.current !== null) {
-                            window.clearInterval(typeTimer.current);
-                            typeTimer.current = null;
-                          }
-                          setGuestScanSource("user_wallet");
-                          setGuestAddress(event.target.value);
-                        }}
+                        onChange={(event) => { setGuestScanSource("user_wallet"); setGuestAddress(event.target.value); }}
                         onKeyDown={(event) => {
                           if (event.key === "Enter") guestCheck("user_wallet");
                         }}
                         disabled={guestChecking}
                         aria-label="Wallet address to scan"
                       />
-                      <button className={guestAddress.trim() ? `primary scan-cta active${scanBtnPress ? " pressing" : ""}` : `primary scan-cta${scanBtnPress ? " pressing" : ""}`} onClick={() => guestCheck("user_wallet")} disabled={guestChecking}>
+                      <button className={guestAddress.trim() ? "primary scan-cta active" : "primary scan-cta"} onClick={() => guestCheck("user_wallet")} disabled={guestChecking}>
                         {guestChecking ? (
                           <>
                             <i className="spinner" /> Scanning…
                           </>
                         ) : (
-                          <>Test wallet <span>→</span></>
+                          <>Calculate Recovery <span>→</span></>
                         )}
                       </button>
                     </div>
@@ -1346,11 +1316,11 @@ function App() {
                       onClick={() => {
                         capture("real_wallet_example_selected", { source: "primary_scan" });
                         setGuestScanSource("real_wallet_example");
-                        typeAddress("E3VpEoP6AbJy68cjyg1ZHo6JUtojMZmJEYtqHaNEv1F7");
+                        setGuestAddress("E3VpEoP6AbJy68cjyg1ZHo6JUtojMZmJEYtqHaNEv1F7");
                       }}
                     >
                       <span>No address handy?</span>
-                      <strong>Try a real wallet example</strong>
+                      <strong>Load sample address</strong>
                     </button>
                     {guestError && <div className="error-banner">{guestError}</div>}
                   </div>
