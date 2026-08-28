@@ -286,6 +286,27 @@ strong,dd,.token-balance{font-variant-numeric:tabular-nums}
 .wallet-adapter-modal-overlay { z-index: 100000 !important; }
 .wallet-adapter-modal-wrapper { z-index: 100001 !important; max-height: calc(100dvh - 24px); overflow-y: auto; }
 .wallet-adapter-dropdown-list { z-index: 100002 !important; }
+
+.brand-nudge {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  z-index: 200000;
+  background: #171814;
+  color: #d5fb42;
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 18px;
+  border-radius: 999px;
+  box-shadow: 0 12px 40px rgba(23,24,20,.35);
+  animation: brand-nudge-in .18s ease;
+}
+@keyframes brand-nudge-in {
+  from { opacity: 0; transform: translate(-50%, 8px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
 @media (max-width:680px) {
   .wallet-adapter-modal-wrapper { width: calc(100vw - 24px) !important; margin: 12px !important; padding: 20px !important; }
   .wallet-adapter-modal-list { margin: 0 !important; }
@@ -417,6 +438,7 @@ strong,dd,.token-balance{font-variant-numeric:tabular-nums}
   gap: 22px;
 }
 .marketing-steps li {
+  cursor: pointer;
   counter-increment: step;
   position: relative;
   padding-top: 38px;
@@ -453,6 +475,8 @@ strong,dd,.token-balance{font-variant-numeric:tabular-nums}
   color: #171814;
   line-height: 1.2;
 }
+.marketing-steps li:hover strong { color: #657326; }
+.marketing-steps li:hover::before { background: #d5fb42; }
 .marketing-safety {
   margin: 0;
   padding: 0;

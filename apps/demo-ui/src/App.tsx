@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import {
@@ -287,6 +287,11 @@ function App() {
   const [currentSig, setCurrentSig] = useState<string | null>(null);
   const [results, setResults] = useState<TxResult[]>([]);
   const [fatalError, setFatalError] = useState<string | null>(null);
+  const [brandNudge, setBrandNudge] = useState(false);
+  // Auto-scan on connect: runs once per mounted session per wallet so a
+  // connect immediately produces value instead of leaving the user at a
+  // static "Scan wallet" button. Cleared on disconnect.
+  const autoScannedWallet = useRef<string | null>(null);
   // Guest preview: estimate ANY wallet before connecting (read-only).
   const [guestAddress, setGuestAddress] = useState("");
   const [guestChecking, setGuestChecking] = useState(false);
@@ -913,6 +918,30 @@ function App() {
     }
   }, [walletAddress, program, config, threshold, outputMint, analyzeWallet]);
 
+  // After connect, kick off a scan automatically so the connected wallet
+  // immediately shows a plan instead of parking at a manual button. Runs once
+  // per mounted session per wallet; a fresh page load counts as a new session.
+  useEffect(() => {
+    if (!walletAddress || !program) return;
+    if (autoScannedWallet.current === walletAddress.toBase58()) return;
+    if (stage !== "setup" || scanning || positions.length > 0) return;
+    const timer = window.setTimeout(() => {
+      autoScannedWallet.current = walletAddress.toBase58();
+      capture("auto_scan_triggered", { wallet_short: shortWallet(walletAddress.toBase58()) });
+      void scan();
+    }, 600);
+    return () => window.clearTimeout(timer);
+  }, [walletAddress, program, stage, scanning, positions, scan]);
+
+  useEffect(() => {
+    if (!walletAddress) autoScannedWallet.current = null;
+  }, [walletAddress]);
+
+  const scrollToScan = (step: string) => {
+    capture("marketing_step_clicked", { step });
+    document.querySelector(".setup-panel")?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+
   const selectRecommended = () => {
     setSelected(
       new Set(
@@ -1122,7 +1151,20 @@ function App() {
   return (
     <div className="app-shell">
       <header className="site-header">
-        <button className="brand" onClick={restart} aria-label="Return to start">
+        <button
+          className="brand"
+          onClick={() => {
+            if (stage === "setup") {
+              capture("brand_clicked", { stage });
+              setBrandNudge(true);
+              window.setTimeout(() => setBrandNudge(false), 2200);
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            } else {
+              restart();
+            }
+          }}
+          aria-label="Return to start"
+        >
           <span className="brand-mark">tf</span>
           <span>
             <strong>Tidify</strong>
@@ -1137,6 +1179,12 @@ function App() {
           </div>
         </div>
       </header>
+
+      {brandNudge && (
+        <div className="brand-nudge" role="status">
+          You're at the start — paste a wallet or connect to begin.
+        </div>
+      )}
 
       <main>
         <nav className="steps" aria-label="Tidify progress">
@@ -1513,10 +1561,10 @@ function App() {
               <span className="eyebrow">HOW TIDIFY WORKS</span>
               <h2>From scattered dust to usable value</h2>
               <ol className="marketing-steps">
-                <li><strong>Identify.</strong> Tidify scans a wallet on Solana mainnet for empty token accounts and leftover dust balances — no signature needed to preview.</li>
-                <li><strong>Price.</strong> Every balance is priced in USD, with friendly names from on-chain metadata when available.</li>
-                <li><strong>Propose.</strong> Each position gets the economical action — swap, burn, or close — with estimated recovery, fees, and rent refund.</li>
-                <li><strong>You approve.</strong> Check every account, sign a real mainnet transaction batch, and recovered value lands directly in your wallet.</li>
+                <li onClick={() => scrollToScan("identify")}><strong>Identify.</strong> Tidify scans a wallet on Solana mainnet for empty token accounts and leftover dust balances — no signature needed to preview.</li>
+                <li onClick={() => scrollToScan("price")}><strong>Price.</strong> Every balance is priced in USD, with friendly names from on-chain metadata when available.</li>
+                <li onClick={() => scrollToScan("propose")}><strong>Propose.</strong> Each position gets the economical action — swap, burn, or close — with estimated recovery, fees, and rent refund.</li>
+                <li onClick={() => scrollToScan("approve")}><strong>You approve.</strong> Check every account, sign a real mainnet transaction batch, and recovered value lands directly in your wallet.</li>
               </ol>
             </div>
 
