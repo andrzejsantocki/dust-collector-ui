@@ -36,6 +36,7 @@ import {
   batchPositions,
   prepareInstructions,
   sendPreparedTransaction,
+  preflightWallet,
 } from "./lib/executor";
 import {
   configPda,
@@ -989,6 +990,15 @@ function App() {
       );
       return;
     }
+    // Fail fast with an actionable message BEFORE building/simulating: a
+    // 0-SOL wallet or already-closed accounts otherwise surface as cryptic
+    // "AccountNotFound" simulation errors.
+    const preflight = await preflightWallet(connection, walletAddress, selectedPositions);
+    if (!preflight.ok) {
+      capture("preflight_failed", { reason: preflight.message ?? "" });
+      setFatalError(preflight.message ?? "Preflight check failed.");
+      return;
+    }
     setStage("processing");
     setResults([]);
     setFatalError(null);
@@ -1864,6 +1874,7 @@ function App() {
                   <p><strong>Transactions temporarily unavailable</strong>Please try again later.</p>
                 </div>
               )}
+              {fatalError && <div className="error-banner">{fatalError}</div>}
               <button className="primary full" disabled={(selectedBurns.length > 0 && !burnConfirmed) || !!config?.paused} onClick={execute}>
                 {config?.paused ? "Paused — execution disabled" : <>Build, simulate &amp; approve once <span>→</span></>}
               </button>

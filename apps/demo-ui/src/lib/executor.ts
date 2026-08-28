@@ -159,6 +159,62 @@ export async function buildSwapInstructions(
   return { instructions, plan, destinationAta, feeAta, lookupTables };
 }
 
+export interface PreflightResult {
+  ok: boolean;
+  message?: string;
+}
+
+/** Minimum lamports a wallet needs to cover network + priority fees. */
+const MIN_FEE_LAMPORTS = 15_000;
+
+/**
+ * Fail-fast diagnostics before building/simulating anything: a 0-SOL wallet
+ * or already-closed token accounts surface as cryptic "AccountNotFound"
+ * during simulation. Check both up front and return actionable copy.
+ */
+export async function preflightWallet(
+  connection: Connection,
+  walletAddress: PublicKey,
+  positions: Position[],
+): Promise<PreflightResult> {
+  const [balance, sourceInfos] = await Promise.all([
+    connection.getBalance(walletAddress).catch(() => null),
+    connection
+      .getMultipleAccountsInfo(
+        positions.map((p) => new PublicKey(p.tokenAccount)),
+        "confirmed",
+      )
+      .catch(() => null),
+  ]);
+  if (balance === null) {
+    return { ok: false, message: "RPC unavailable — could not verify your wallet before sending." };
+  }
+  if (balance < MIN_FEE_LAMPORTS) {
+    const have = balance / 1e9;
+    return {
+      ok: false,
+      message:
+        `Your wallet has ${have.toFixed(6)} SOL — too little to pay network fees ` +
+        `(~0.00002 SOL needed). Send a small amount of SOL to ${walletAddress.toBase58().slice(0, 6)}…${walletAddress.toBase58().slice(-6)} and retry.`,
+    };
+  }
+  if (sourceInfos === null) {
+    return { ok: false, message: "RPC unavailable — could not verify the accounts in this batch." };
+  }
+  const missing = positions.filter(
+    (p, i) => !sourceInfos[i] || sourceInfos[i]!.data.length === 0,
+  );
+  if (missing.length > 0) {
+    return {
+      ok: false,
+      message:
+        `${missing.length} of ${positions.length} accounts no longer exist on-chain ` +
+        `(already closed or reclaimed). Rescan your wallet to refresh the list before retrying.`,
+    };
+  }
+  return { ok: true };
+}
+
 /** Build the close/burn instructions for a batch of positions. */
 export async function buildCloseBurnInstructions(
   program: Program<DustCollector>,
@@ -246,11 +302,26 @@ export async function prepareInstructions(opts: PrepareOptions): Promise<Prepare
     commitment: "confirmed",
   });
   if (sim.value.err) {
+    const errStr =
+      typeof sim.value.err === "string"
+        ? sim.value.err
+        : JSON.stringify(sim.value.err);
+    let hint = "";
+    if (/AccountNotFound/.test(errStr)) {
+      hint =
+        " — an account in this transaction no longer exists (already closed, or the wallet has 0 SOL). Rescan and retry.";
+    } else if (/insufficient lamports|InsufficientFundsForRent/i.test(errStr)) {
+      hint = " — your wallet needs more SOL to cover fees/rent.";
+    } else if (/BlockhashNotFound/.test(errStr)) {
+      hint = " — blockhash expired, retry.";
+    } else if (/0x[0-9a-f]+/.test(errStr)) {
+      hint = " — protocol rejected the instruction (on-chain error).";
+    }
     const logs = (sim.value.logs ?? [])
       .filter((l) => l.includes("Program log:") || l.includes(" failed:"))
       .slice(-12);
-    const detail = logs.length ? logs.join(" | ") : JSON.stringify(sim.value.err);
-    throw new Error(`${label}: simulation failed — ${detail}`);
+    const detail = logs.length ? logs.join(" | ") : errStr;
+    throw new Error(`${label}: simulation failed — ${detail}${hint}`);
   }
   return { transaction, label, blockhash, lastValidBlockHeight };
 }
