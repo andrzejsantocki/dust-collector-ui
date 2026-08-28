@@ -1492,8 +1492,10 @@ function App() {
               {!connected && guestResult && (
                 <div className="post-scan-connect">
                   <strong>Ready to clean it up?</strong>
-                  <span>Connect wallet only after the read-only scan shows value.</span>
-                  <div className="wallet-button primary-wrap"><WalletMultiButton /></div>
+                  <div className="post-scan-actions">
+                    <span>Connect wallet only after the read-only scan shows value.</span>
+                    <div className="wallet-button primary-wrap"><WalletMultiButton /></div>
+                  </div>
                 </div>
               )}
             </div>

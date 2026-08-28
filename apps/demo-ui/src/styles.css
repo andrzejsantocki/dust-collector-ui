@@ -71,7 +71,8 @@ p { color: #676960; line-height: 1.65; }
 .demo-wallet-link { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 16px; padding: 12px 13px; border: 1px solid #d5de9f; border-radius: 11px; background: #f3f8dc; color: #4e5c17; font-size: 12px; text-align: left; text-decoration: none; }
 .demo-wallet-link span { color: #6c725c; font-weight: 700; }
 .demo-wallet-link strong { font-weight: 900; text-decoration: underline; text-underline-offset: 3px; }
-.post-scan-connect { display: grid; gap: 8px; margin-top: 14px; padding: 16px; border: 1px solid #cfd5aa; border-radius: 14px; background: #f3f8dc; }
+.post-scan-connect { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 14px; padding: 16px; border: 1px solid #cfd5aa; border-radius: 14px; background: #f3f8dc; }
+.post-scan-actions { display: flex; align-items: center; gap: 14px; text-align: right; }
 .post-scan-connect .wallet-button .wallet-adapter-button { animation: connect-pulse 1.8s ease-in-out infinite; }
 @keyframes connect-pulse {
   0%, 100% { box-shadow: 0 5px 0 #d5fb42, 0 0 0 0 rgba(213, 251, 66, .65); transform: scale(1); }
@@ -80,6 +81,10 @@ p { color: #676960; line-height: 1.65; }
 .post-scan-connect strong, .post-scan-connect span { display: block; }
 .post-scan-connect strong { font: 800 15px Manrope; }
 .post-scan-connect span { color: #62655a; font-size: 11px; }
+@media (max-width: 680px) {
+  .post-scan-connect { flex-direction: column; align-items: flex-start; }
+  .post-scan-actions { flex-direction: column; align-items: flex-start; text-align: left; }
+}
 .compact-guest-card { margin-top: 20px; }
 .wallet-illustration { width: 64px; height: 64px; display: grid; place-items: center; margin-bottom: 18px; border-radius: 18px; background: #eef4d5; color: #34382b; font-size: 30px; transform: rotate(-4deg); }
 .wallet-summary { display: flex; align-items: center; gap: 12px; margin: 30px 0 22px; padding: 13px 14px; border: 1px solid #d7d4ca; border-radius: 12px; background: #f6f4ed; }
