@@ -1809,8 +1809,8 @@ function App() {
               <hr />
               <dl>
                 <div><dt>Estimated recovery</dt><dd>{fmtRecovery(totals.netUsd)}</dd></div>
+                <div><dt>Max protocol fee</dt><dd>−{usd(totals.feesUsd)}<span className="usdc-equiv">{feesSol.toFixed(6)} SOL</span></dd></div>
                 <div><dt>Rent recovered</dt><dd>{totals.rent.toFixed(6)} SOL<span className="usdc-equiv">≈ {usd(totals.rent * solPrice)}</span></dd></div>
-                <div><dt>Max protocol fee</dt><dd>{feesSol.toFixed(6)} SOL<span className="usdc-equiv">≈ {usd(totals.feesUsd)}</span></dd></div>
                 <div><dt>Transactions</dt><dd>{transactionCount}</dd></div>
               </dl>
               <div className="safety-note"><strong>Nothing is forced.</strong><span>Only the {selectedPositions.length} checked account{selectedPositions.length === 1 ? "" : "s"} will enter real mainnet transactions. Your wallet signs them in one batch approval.</span></div>
