@@ -580,6 +580,10 @@ function App() {
     );
     return { swap, rent };
   }, [swapPositions, selectedPositions, solPrice]);
+  // Protocol fees are charged in SOL on-chain — surface them in SOL with the
+  // live SOL/USDC quote alongside, so "0 USDC" is never shown when only rent
+  // is being recovered.
+  const feesSol = solPrice > 0 ? totals.feesUsd / solPrice : 0;
 
   // Shared scan -> price -> quote -> classify pipeline. Used by the connected
   // flow (scan) and by the guest preview (guestCheck) for ANY address.
@@ -1612,8 +1616,8 @@ function App() {
                 </div>
                 <dl>
                   <div><dt>Swaps</dt><dd>{fmtRecovery(recoveryBreakdown.swap)}</dd></div>
-                  <div><dt>Account rent</dt><dd>{fmtRecovery(recoveryBreakdown.rent)}</dd></div>
-                  <div><dt>Maximum fee</dt><dd>−{fmtRecovery(totals.feesUsd)}</dd></div>
+                  <div><dt>Account rent</dt><dd>{totals.rent.toFixed(6)} SOL<span className="hero-sub">≈ {usd(totals.rent * solPrice)}</span></dd></div>
+                  <div><dt>Maximum fee</dt><dd>−{feesSol.toFixed(6)} SOL<span className="hero-sub">≈ {usd(totals.feesUsd)}</span></dd></div>
                   <div className="receive"><dt>You receive</dt><dd>{fmtRecovery(totals.netUsd)}</dd></div>
                 </dl>
               </div>
@@ -1805,8 +1809,8 @@ function App() {
               <hr />
               <dl>
                 <div><dt>Estimated recovery</dt><dd>{fmtRecovery(totals.netUsd)}</dd></div>
-                <div><dt>Rent recovered</dt><dd>{totals.rent.toFixed(6)} SOL</dd></div>
-                <div><dt>Max protocol fee</dt><dd>{fmtRecovery(totals.feesUsd)}</dd></div>
+                <div><dt>Rent recovered</dt><dd>{totals.rent.toFixed(6)} SOL<span className="usdc-equiv">≈ {usd(totals.rent * solPrice)}</span></dd></div>
+                <div><dt>Max protocol fee</dt><dd>{feesSol.toFixed(6)} SOL<span className="usdc-equiv">≈ {usd(totals.feesUsd)}</span></dd></div>
                 <div><dt>Transactions</dt><dd>{transactionCount}</dd></div>
               </dl>
               <div className="safety-note"><strong>Nothing is forced.</strong><span>Only the {selectedPositions.length} checked account{selectedPositions.length === 1 ? "" : "s"} will enter real mainnet transactions. Your wallet signs them in one batch approval.</span></div>
