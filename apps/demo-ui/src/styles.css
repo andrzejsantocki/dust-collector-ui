@@ -67,6 +67,8 @@ p { color: #676960; line-height: 1.65; }
 .primary-guest-card .scan-cta { min-height: 54px; background: #d5fb42; color: #20221d; border-color: #20221d; box-shadow: 0 3px 0 #20221d; font-size: 13px; opacity: .82; transform: translateY(1px); transition: opacity .15s ease, transform .15s ease, box-shadow .15s ease; }
 .primary-guest-card .scan-cta.active { opacity: 1; transform: none; box-shadow: 0 5px 0 #20221d; }
 .primary-guest-card .scan-cta span { color: #20221d; }
+.auto-scan-note { display: flex; align-items: center; gap: 8px; min-height: 54px; padding: 0 16px; border: 1px dashed #cfd5aa; border-radius: 10px; color: #657326; font: 700 12px Manrope; }
+.auto-scan-note::before { content: ""; width: 10px; height: 10px; border-radius: 50%; border: 2px solid #d5fb42; border-top-color: #20221d; animation: softPulse 1s ease-in-out infinite; }
 .trust-row { margin-top: 12px; color: #64675e; font-size: 11px; font-weight: 700; line-height: 1.45; }
 .sample-address-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; width: auto; margin-top: 8px; font-size: 13px; }
 .sample-address-row span, .sample-address-row .sample-link { width: auto; min-width: 0; white-space: nowrap; }

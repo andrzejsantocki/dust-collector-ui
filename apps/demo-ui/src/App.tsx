@@ -1000,6 +1000,11 @@ function App() {
   // After connect, kick off a scan automatically so the connected wallet
   // immediately shows a plan instead of parking at a manual button. Runs once
   // per mounted session per wallet; a fresh page load counts as a new session.
+  // NOTE: use a ref for `scan` — depending on the callback identity here
+  // makes the effect re-run on every render, the cleanup clears the pending
+  // timer, and the auto-scan never fires.
+  const scanRef = useRef(scan);
+  scanRef.current = scan;
   useEffect(() => {
     if (!walletAddress || !program) return;
     if (autoScannedWallet.current === walletAddress.toBase58()) return;
@@ -1007,10 +1012,10 @@ function App() {
     const timer = window.setTimeout(() => {
       autoScannedWallet.current = walletAddress.toBase58();
       capture("auto_scan_triggered", { wallet_short: shortWallet(walletAddress.toBase58()) });
-      void scan();
+      void scanRef.current();
     }, 600);
     return () => window.clearTimeout(timer);
-  }, [walletAddress, program, stage, scanning, positions, scan]);
+  }, [walletAddress, program, stage, scanning, positions.length]);
 
   useEffect(() => {
     if (!walletAddress) autoScannedWallet.current = null;
@@ -1480,12 +1485,20 @@ function App() {
                         ))}
                       </div>
                     </div>
-                  ) : (
+                  ) : fatalError ? (
+                    <>
+                      <button className="primary full scan-button" onClick={scan}>
+                        Retry scan <span>→</span>
+                      </button>
+                      {fatalError && <div className="error-banner">{fatalError}</div>}
+                    </>
+                  ) : positions.length > 0 ? (
                     <button className="primary full scan-button" onClick={scan}>
-                      Scan wallet <span>→</span>
+                      ↻ Rescan wallet
                     </button>
+                  ) : (
+                    <div className="auto-scan-note">Scanning your wallet automatically…</div>
                   )}
-                  {fatalError && <div className="error-banner">{fatalError}</div>}
                 </>
               )}
 
