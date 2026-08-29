@@ -71,20 +71,20 @@ p { color: #676960; line-height: 1.65; }
 .demo-wallet-link { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 16px; padding: 12px 13px; border: 1px solid #d5de9f; border-radius: 11px; background: #f3f8dc; color: #4e5c17; font-size: 12px; text-align: left; text-decoration: none; }
 .demo-wallet-link span { color: #6c725c; font-weight: 700; }
 .demo-wallet-link strong { font-weight: 900; text-decoration: underline; text-underline-offset: 3px; }
-.post-scan-connect { display: flex; align-items: center; justify-content: space-between; gap: 16px; width: 100%; margin-top: 14px; padding: 16px; border: 1px solid #cfd5aa; border-radius: 14px; background: #f3f8dc; font: inherit; text-align: left; cursor: pointer; transition: border-color .15s ease, transform .15s ease; }
+.post-scan-connect { display: block; width: 100%; margin-top: 14px; padding: 16px; border: 1px solid #cfd5aa; border-radius: 14px; background: #f3f8dc; font: inherit; text-align: left; cursor: pointer; transition: border-color .15s ease; }
 .post-scan-connect:hover { border-color: #a8c62c; }
-.post-scan-actions { display: flex; align-items: center; gap: 14px; text-align: right; }
-.post-scan-cta { animation: connect-pulse 1.8s ease-in-out infinite; }
+.cleanup-row { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.cleanup-copy { flex: 1; min-width: 0; }
+.cleanup-copy strong { display: block; font: 800 15px Manrope; }
+.cleanup-copy small { display: block; margin-top: 3px; color: #62655a; font-size: 11px; line-height: 1.45; }
+.connect-wallet-btn { width: fit-content; min-width: 160px; flex: 0 0 auto; padding: 12px 20px; white-space: nowrap; border-radius: 9px; background: #20221d; color: #d5fb42; font: 800 12px Manrope; text-align: center; animation: connect-pulse 1.8s ease-in-out infinite; }
 @keyframes connect-pulse {
   0%, 100% { box-shadow: 0 5px 0 #d5fb42, 0 0 0 0 rgba(213, 251, 66, .65); transform: scale(1); }
   50% { box-shadow: 0 5px 0 #d5fb42, 0 0 0 14px rgba(213, 251, 66, 0); transform: scale(1.035); }
 }
-.post-scan-connect strong, .post-scan-connect span { display: block; }
-.post-scan-connect strong { font: 800 15px Manrope; }
-.post-scan-connect span { color: #62655a; font-size: 11px; }
-@media (max-width: 680px) {
-  .post-scan-connect { flex-direction: column; align-items: flex-start; }
-  .post-scan-actions { flex-direction: column; align-items: flex-start; text-align: left; }
+@media (max-width: 640px) {
+  .cleanup-row { flex-direction: column; align-items: stretch; }
+  .connect-wallet-btn { width: 100%; }
 }
 .compact-guest-card { margin-top: 20px; }
 .wallet-illustration { width: 64px; height: 64px; display: grid; place-items: center; margin-bottom: 18px; border-radius: 18px; background: #eef4d5; color: #34382b; font-size: 30px; transform: rotate(-4deg); }
@@ -223,9 +223,19 @@ p { color: #676960; line-height: 1.65; }
 .mini-icon.close { background:#becf85; }.mini-icon.swap { background:#b8adef; }.mini-icon.burn { background:#e19d90; }
 .summary-card hr { margin: 22px 0; border: 0; border-top: 1px solid #4b4d46; }
 .summary-card dl { margin: 0 0 20px; }
-.summary-card dl div { display: flex; justify-content: space-between; margin: 11px 0; }
+.summary-card dl div { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin: 11px 0; }
+.summary-card dt { flex: 1; min-width: 0; color: #9da098; font-size: 10px; }
+.summary-card dd {
+  flex: 0 0 auto;
+  min-width: 112px;
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
 .summary-card .usdc-equiv { display: block; margin-top: 2px; color: #9da098; font-size: 9px; font-weight: 600; }
-.summary-card dt { color: #9da098; font-size: 10px; }.summary-card dd { margin: 0; font-size: 11px; font-weight: 700; }
 .safety-note { display: flex; flex-direction: column; gap: 4px; margin: 18px 0; padding: 12px; border-left: 2px solid #d5fb42; background: #35372f; }
 .safety-note strong { color: #d5fb42; font-size: 10px; }.safety-note span { color: #aeb0a8; font-size: 9px; line-height: 1.45; }
 .summary-card .primary { background: #d5fb42; color: #25271f; box-shadow: none; border-color: #d5fb42; }

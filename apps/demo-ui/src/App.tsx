@@ -639,6 +639,11 @@ function App() {
     })} ${outputCurrency.label}`;
   const fmtRecovery = (valueUsd: number) =>
     outputPriceUsdc > 0 ? fmtOutput(valueUsd / outputPriceUsdc) : "Unavailable";
+  // SOL amounts: max 6 decimals, trailing zeros trimmed.
+  const fmtSol = (v: number) => {
+    const trimmed = v.toFixed(6).replace(/\.?0+$/, "");
+    return trimmed === "" || trimmed === "-" ? "0" : trimmed;
+  };
 
   const classified = useMemo(
     () =>
@@ -1675,10 +1680,12 @@ function App() {
                     setWalletModalVisible(true);
                   }}
                 >
-                  <strong>Ready to clean it up?</strong>
-                  <span className="post-scan-actions">
-                    <span>Connect wallet only after the read-only scan shows value.</span>
-                    <span className="post-scan-cta">Connect wallet →</span>
+                  <span className="cleanup-row">
+                    <span className="cleanup-copy">
+                      <strong>Ready to clean it up?</strong>
+                      <small>Connect wallet only after the read-only scan shows value.</small>
+                    </span>
+                    <span className="connect-wallet-btn">Connect wallet →</span>
                   </span>
                 </button>
               )}
@@ -2039,9 +2046,18 @@ function App() {
               </div>
               <hr />
               <dl>
-                <div><dt>Estimated recovery</dt><dd>{fmtRecovery(totals.netUsd)}</dd></div>
-                <div><dt>Max protocol fee</dt><dd>−{usd(totals.feesUsd)}<span className="usdc-equiv">{feesSol.toFixed(6)} SOL</span></dd></div>
-                <div><dt>Rent recovered</dt><dd>{totals.rent.toFixed(6)} SOL<span className="usdc-equiv">≈ {usd(totals.rent * solPrice)}</span></dd></div>
+                <div>
+                  <dt>Estimated recovery</dt>
+                  <dd>{fmtRecovery(totals.netUsd)}{outputMint !== USDC_MINT.toBase58() && <span className="usdc-equiv">{usd(totals.netUsd)}</span>}</dd>
+                </div>
+                <div>
+                  <dt>Max protocol fee</dt>
+                  <dd>{fmtSol(feesSol)} SOL<span className="usdc-equiv">{usd(totals.feesUsd)}</span></dd>
+                </div>
+                <div>
+                  <dt>Rent recovered</dt>
+                  <dd>{fmtSol(totals.rent)} SOL<span className="usdc-equiv">≈ {usd(totals.rent * solPrice)}</span></dd>
+                </div>
                 <div><dt>Transactions</dt><dd>{transactionCount}</dd></div>
               </dl>
               <div className="safety-note"><strong>Nothing is forced.</strong><span>Only the {selectedPositions.length} checked account{selectedPositions.length === 1 ? "" : "s"} will enter real mainnet transactions. Your wallet signs them in one batch approval.</span></div>
