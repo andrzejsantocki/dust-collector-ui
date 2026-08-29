@@ -1442,7 +1442,7 @@ function App() {
                     <span>≈{(tidyTotals.txs * 0.00203928).toFixed(3)} SOL rent returned</span>
                   </a>
                 ) : (
-                  <div><strong>stats in progress</strong><span>not enough on-chain data yet</span></div>
+                  <div><strong>stats are loading</strong><span>not enough on-chain data yet</span></div>
                 )}
                 <button
                   type="button"
