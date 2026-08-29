@@ -414,51 +414,82 @@ function App() {
     };
   }, [connection]);
 
-  // "X accounts tidied" ticker: count the program's confirmed signatures.
-  // Cached in localStorage for 15 minutes — pagination is cheap here (the
-  // program has a small history) but no reason to re-walk it on every view.
-  const TIDY_TOTALS_CACHE = "tidify_totals_v1";
+  // "X accounts tidied" ticker: derived from the program's on-chain history.
+  // A transaction can batch several close/burn ops and some transactions are
+  // config/stats housekeeping — so the claim must be the COUNT OF CLOSE/BURN
+  // INSTRUCTIONS, never the transaction count. On-chain history is
+  // append-only, so the cache is a permanent base (no TTL): each load walks
+  // only signatures newer than the cached base and adds their deltas.
+  const TIDY_TOTALS_CACHE = "tidify_totals_v2";
   useEffect(() => {
     let cancelled = false;
-    const cached = (() => {
-      try {
-        const raw = window.localStorage.getItem(TIDY_TOTALS_CACHE);
-        if (!raw) return null;
-        const parsed = JSON.parse(raw) as { t: number; txs: number; failed: number };
-        return Date.now() - parsed.t < 15 * 60_000 ? parsed : null;
-      } catch {
-        return null;
-      }
-    })();
-    if (cached) {
-      setTidyTotals({ txs: cached.txs, failed: cached.failed });
-      return;
-    }
     (async () => {
       try {
+        const base = (() => {
+          try {
+            const raw = window.localStorage.getItem(TIDY_TOTALS_CACHE);
+            if (!raw) return null;
+            const parsed = JSON.parse(raw) as {
+              beforeSig: string | null;
+              accounts: number;
+            };
+            return typeof parsed.accounts === "number" ? parsed : null;
+          } catch {
+            return null;
+          }
+        })();
+        // Walk signatures from newest back until the cached base is reached
+        // (or history is exhausted on a cold cache).
+        const newSigs: { signature: string; err: unknown }[] = [];
+        let hitBase = false;
         let before: string | undefined;
-        let txs = 0;
-        let failed = 0;
-        for (let page = 0; page < 10; page++) {
+        for (let page = 0; page < 10 && !hitBase; page++) {
           const sigs = await connection.getSignaturesForAddress(PROGRAM_ID, {
             limit: 1000,
             before,
           });
           if (sigs.length === 0) break;
-          txs += sigs.length;
-          failed += sigs.filter((s) => s.err).length;
+          for (const s of sigs) {
+            if (base && s.signature === base.beforeSig) {
+              hitBase = true;
+              break;
+            }
+            newSigs.push(s);
+          }
+          if (sigs.length < 1000) break; // end of program history
           before = sigs[sigs.length - 1].signature;
-          if (sigs.length < 1000) break;
+        }
+        // Delta only when the cached base signature was actually found in
+        // the current history; otherwise recount everything fetched.
+        const deltaOk = !base || hitBase;
+        const toParse = newSigs.slice(0, 200);
+        let accounts = deltaOk ? base?.accounts ?? 0 : 0;
+        for (const s of toParse) {
+          if (s.err) continue;
+          const tx = await connection
+            .getParsedTransaction(s.signature, {
+              maxSupportedTransactionVersion: 0,
+              commitment: "confirmed",
+            })
+            .catch(() => null);
+          if (!tx) continue;
+          const logs = tx.meta?.logMessages ?? [];
+          for (const l of logs) {
+            if (l.includes("Program log: Instruction: CloseEmpty")) accounts += 1;
+            else if (l.includes("Program log: Instruction: BurnAndClose")) accounts += 1;
+          }
         }
         if (cancelled) return;
-        setTidyTotals({ txs, failed });
+        setTidyTotals({ txs: accounts, failed: 0 });
+        const newBaseSig =
+          toParse.length > 0 ? toParse[toParse.length - 1].signature : base?.beforeSig ?? null;
         try {
           window.localStorage.setItem(
             TIDY_TOTALS_CACHE,
-            JSON.stringify({ t: Date.now(), txs, failed }),
+            JSON.stringify({ beforeSig: newBaseSig, accounts }),
           );
         } catch {
-          // storage unavailable — ticker just refetches next view
+          // storage unavailable — ticker recomputes next view
         }
       } catch {
         // leave null — hero shows the neutral placeholder
@@ -1400,7 +1431,7 @@ function App() {
                     href={`${EXPLORER_URL}/program/${PROGRAM_ID.toBase58()}`}
                     target="_blank"
                     rel="noreferrer"
-                    title="Every confirmed program transaction = one tidy operation"
+                    title="Counted from close/burn instructions in confirmed program transactions"
                   >
                     <strong>{tidyTotals.txs} accounts tidied</strong>
                     <span>≈{(tidyTotals.txs * 0.00203928).toFixed(3)} SOL rent returned</span>
