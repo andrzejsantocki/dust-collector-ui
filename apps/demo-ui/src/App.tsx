@@ -1405,19 +1405,21 @@ function App() {
                       </button>
                     </div>
                     <div className="trust-row">Public address only · No connection · No signing · Read-only</div>
-                    <button
-                      type="button"
-                      className={sampleLoaded ? "demo-wallet-link" : "demo-wallet-link pulse"}
-                      onClick={() => {
-                        capture("real_wallet_example_selected", { source: "primary_scan" });
-                        setGuestScanSource("real_wallet_example");
-                        setGuestAddress("E3VpEoP6AbJy68cjyg1ZHo6JUtojMZmJEYtqHaNEv1F7");
-                        setSampleLoaded(true);
-                      }}
-                    >
+                    <div className="sample-address-row">
                       <span>No address handy?</span>
-                      <strong>Load sample address</strong>
-                    </button>
+                      <button
+                        type="button"
+                        className={sampleLoaded ? "sample-link" : "sample-link pulse"}
+                        onClick={() => {
+                          capture("real_wallet_example_selected", { source: "primary_scan" });
+                          setGuestScanSource("real_wallet_example");
+                          setGuestAddress("E3VpEoP6AbJy68cjyg1ZHo6JUtojMZmJEYtqHaNEv1F7");
+                          setSampleLoaded(true);
+                        }}
+                      >
+                        Load sample address
+                      </button>
+                    </div>
                     {guestError && <div className="error-banner">{guestError}</div>}
                   </div>
                 </div>

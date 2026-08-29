@@ -68,14 +68,16 @@ p { color: #676960; line-height: 1.65; }
 .primary-guest-card .scan-cta.active { opacity: 1; transform: none; box-shadow: 0 5px 0 #20221d; }
 .primary-guest-card .scan-cta span { color: #20221d; }
 .trust-row { margin-top: 12px; color: #64675e; font-size: 11px; font-weight: 700; line-height: 1.45; }
-.demo-wallet-link { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 16px; padding: 12px 13px; border: 1px solid #d5de9f; border-radius: 11px; background: #f3f8dc; color: #4e5c17; font-size: 12px; text-align: left; text-decoration: none; }
-.demo-wallet-link.pulse { animation: demoLinkPulse 2.4s ease-in-out infinite; }
-@keyframes demoLinkPulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(213, 251, 66, 0); border-color: #d5de9f; }
-  50% { box-shadow: 0 0 0 5px rgba(213, 251, 66, .45); border-color: #a8c62c; }
+.sample-address-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; width: auto; margin-top: 8px; font-size: 13px; }
+.sample-address-row span, .sample-address-row .sample-link { width: auto; min-width: 0; white-space: nowrap; }
+.sample-address-row span { color: #6c725c; font-weight: 700; }
+.sample-link { padding: 0; border: 0; background: transparent; color: #4e5c17; font-family: "DM Sans", sans-serif; font-size: 13px; font-weight: 900; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.sample-link:hover { color: #657326; }
+.sample-link.pulse { animation: sampleLinkPulse 2.4s ease-in-out infinite; }
+@keyframes sampleLinkPulse {
+  0%, 100% { color: #4e5c17; text-shadow: 0 0 0 rgba(213, 251, 66, 0); }
+  50% { color: #2c3a06; text-shadow: 0 0 9px rgba(213, 251, 66, .9); }
 }
-.demo-wallet-link span { color: #6c725c; font-weight: 700; }
-.demo-wallet-link strong { font-weight: 900; text-decoration: underline; text-underline-offset: 3px; }
 .post-scan-connect { display: block; width: 100%; margin-top: 14px; padding: 16px; border: 1px solid #cfd5aa; border-radius: 14px; background: #f3f8dc; font: inherit; text-align: left; cursor: pointer; transition: border-color .15s ease; }
 .post-scan-connect:hover { border-color: #a8c62c; }
 .cleanup-row { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
