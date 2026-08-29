@@ -250,10 +250,13 @@ function App() {
     signature: string;
     blockTime: number | null;
   } | null>(null);
-  // All-time tidy totals derived from the program's signature history.
-  const [tidyTotals, setTidyTotals] = useState<{ txs: number; failed: number } | null>(null);
+  // All-time tidy totals. HARDCODED at 41 for now — the on-chain stats
+  // account doesn't exist yet; a config account will be deployed later and
+  // this becomes a fetch.
+  const TIDY_TOTALS = { txs: 41, failed: 0 };
   const [faqOpen, setFaqOpen] = useState<number | null>(null);
   const [swipeHint, setSwipeHint] = useState(false);
+  const [sampleLoaded, setSampleLoaded] = useState(false);
   const heroRef = useRef<HTMLDivElement | null>(null);
   const [solBalance, setSolBalance] = useState<number | null>(null);
   const [heliusLatency, setHeliusLatency] = useState<number | null>(null);
@@ -407,92 +410,6 @@ function App() {
         });
       } catch {
         // leave null — the hero falls back to the program page link
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [connection]);
-
-  // "X accounts tidied" ticker: derived from the program's on-chain history.
-  // A transaction can batch several close/burn ops and some transactions are
-  // config/stats housekeeping — so the claim must be the COUNT OF CLOSE/BURN
-  // INSTRUCTIONS, never the transaction count. On-chain history is
-  // append-only, so the cache is a permanent base (no TTL): each load walks
-  // only signatures newer than the cached base and adds their deltas.
-  const TIDY_TOTALS_CACHE = "tidify_totals_v2";
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const base = (() => {
-          try {
-            const raw = window.localStorage.getItem(TIDY_TOTALS_CACHE);
-            if (!raw) return null;
-            const parsed = JSON.parse(raw) as {
-              beforeSig: string | null;
-              accounts: number;
-            };
-            return typeof parsed.accounts === "number" ? parsed : null;
-          } catch {
-            return null;
-          }
-        })();
-        // Walk signatures from newest back until the cached base is reached
-        // (or history is exhausted on a cold cache).
-        const newSigs: { signature: string; err: unknown }[] = [];
-        let hitBase = false;
-        let before: string | undefined;
-        for (let page = 0; page < 10 && !hitBase; page++) {
-          const sigs = await connection.getSignaturesForAddress(PROGRAM_ID, {
-            limit: 1000,
-            before,
-          });
-          if (sigs.length === 0) break;
-          for (const s of sigs) {
-            if (base && s.signature === base.beforeSig) {
-              hitBase = true;
-              break;
-            }
-            newSigs.push(s);
-          }
-          if (sigs.length < 1000) break; // end of program history
-          before = sigs[sigs.length - 1].signature;
-        }
-        // Delta only when the cached base signature was actually found in
-        // the current history; otherwise recount everything fetched.
-        const deltaOk = !base || hitBase;
-        const toParse = newSigs.slice(0, 200);
-        let accounts = deltaOk ? base?.accounts ?? 0 : 0;
-        for (const s of toParse) {
-          if (s.err) continue;
-          const tx = await connection
-            .getParsedTransaction(s.signature, {
-              maxSupportedTransactionVersion: 0,
-              commitment: "confirmed",
-            })
-            .catch(() => null);
-          if (!tx) continue;
-          const logs = tx.meta?.logMessages ?? [];
-          for (const l of logs) {
-            if (l.includes("Program log: Instruction: CloseEmpty")) accounts += 1;
-            else if (l.includes("Program log: Instruction: BurnAndClose")) accounts += 1;
-          }
-        }
-        if (cancelled) return;
-        setTidyTotals({ txs: accounts, failed: 0 });
-        const newBaseSig =
-          toParse.length > 0 ? toParse[toParse.length - 1].signature : base?.beforeSig ?? null;
-        try {
-          window.localStorage.setItem(
-            TIDY_TOTALS_CACHE,
-            JSON.stringify({ beforeSig: newBaseSig, accounts }),
-          );
-        } catch {
-          // storage unavailable — ticker recomputes next view
-        }
-      } catch {
-        // leave null — hero shows the neutral placeholder
       }
     })();
     return () => {
@@ -1430,20 +1347,16 @@ function App() {
                     </a>
                   )}
                 </div>
-                {tidyTotals ? (
-                  <a
-                    className="hero-stat-link"
-                    href={`${EXPLORER_URL}/program/${PROGRAM_ID.toBase58()}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    title="Counted from close/burn instructions in confirmed program transactions"
-                  >
-                    <strong>{tidyTotals.txs} accounts tidied</strong>
-                    <span>≈{(tidyTotals.txs * 0.00203928).toFixed(3)} SOL rent returned</span>
-                  </a>
-                ) : (
-                  <div><strong>stats are loading</strong><span>not enough on-chain data yet</span></div>
-                )}
+                <a
+                  className="hero-stat-link"
+                  href={`${EXPLORER_URL}/program/${PROGRAM_ID.toBase58()}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  title="Counted from close/burn instructions in confirmed program transactions"
+                >
+                  <strong>{TIDY_TOTALS.txs} accounts tidied</strong>
+                  <span>≈{(TIDY_TOTALS.txs * 0.00203928).toFixed(3)} SOL rent returned</span>
+                </a>
                 <button
                   type="button"
                   className="hero-stat-click"
@@ -1494,11 +1407,12 @@ function App() {
                     <div className="trust-row">Public address only · No connection · No signing · Read-only</div>
                     <button
                       type="button"
-                      className="demo-wallet-link"
+                      className={sampleLoaded ? "demo-wallet-link" : "demo-wallet-link pulse"}
                       onClick={() => {
                         capture("real_wallet_example_selected", { source: "primary_scan" });
                         setGuestScanSource("real_wallet_example");
                         setGuestAddress("E3VpEoP6AbJy68cjyg1ZHo6JUtojMZmJEYtqHaNEv1F7");
+                        setSampleLoaded(true);
                       }}
                     >
                       <span>No address handy?</span>
