@@ -143,6 +143,10 @@ export async function tokenSymbol(
 let priceCache: Map<string, number> | null = null;
 let priceCacheAt = 0;
 
+/** Last-resort SOL price when every quote attempt fails. Display only — it
+ * must never zero out the user's recovery numbers. */
+export const SOL_PRICE_FALLBACK_USDC = 100;
+
 export async function fetchPrices(
   mints: PublicKey[],
   force = false
@@ -151,14 +155,26 @@ export async function fetchPrices(
   if (!force && priceCache && now - priceCacheAt < 60_000) return priceCache;
   const ids = [...new Set([SOL_MINT.toBase58(), ...mints.map((m) => m.toBase58())])];
   const map = new Map<string, number>();
-  try {
-    const data = await jupiterGet(JUPITER_PRICE_URL, { ids: ids.join(",") });
-    for (const [mint, entry] of Object.entries(data ?? {})) {
-      const price = Number((entry as any).usdPrice);
-      if (Number.isFinite(price)) map.set(mint, price);
+  // Retry loop: a transient price-API failure must not surface as "0 USDC
+  // recovery" downstream. 3 attempts with backoff, then SOL fallback.
+  const attempts = [0, 800, 1600, 3200];
+  for (const delay of attempts) {
+    if (delay > 0) await new Promise((r) => setTimeout(r, delay));
+    try {
+      const data = await jupiterGet(JUPITER_PRICE_URL, { ids: ids.join(",") });
+      for (const [mint, entry] of Object.entries(data ?? {})) {
+        const price = Number((entry as any).usdPrice);
+        if (Number.isFinite(price) && price > 0) map.set(mint, price);
+      }
+      if (map.size > 0) break;
+    } catch {
+      // retry
     }
-  } catch {
-    // prices are display-only; leave the map empty
+  }
+  // SOL must always have a price so fiat estimates stay non-zero.
+  const sol = map.get(SOL_MINT.toBase58());
+  if (sol === undefined || !Number.isFinite(sol) || sol <= 0) {
+    map.set(SOL_MINT.toBase58(), SOL_PRICE_FALLBACK_USDC);
   }
   priceCache = map;
   priceCacheAt = now;

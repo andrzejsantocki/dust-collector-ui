@@ -27,6 +27,7 @@ import {
   solPerOutputUnit,
   fetchPrices,
   fetchTokenMeta,
+  SOL_PRICE_FALLBACK_USDC,
   type ScanProgress,
 } from "./lib/api";
 import { classifyPosition, boundedFee } from "./lib/classify";
@@ -459,6 +460,22 @@ function App() {
       el.removeEventListener("touchmove", onTouchMove);
     };
   }, [stage]);
+
+  // Warm the SOL price on mount so USD estimates are never 0 while a scan
+  // is running or before one completes. fetchPrices has its own retry loop
+  // and a 100 USDC last-resort fallback.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const prices = await fetchPrices([], true);
+      if (cancelled) return;
+      const sol = prices.get(SOL_MINT.toBase58());
+      if (sol !== undefined && sol > 0) setSolPrice(sol);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Load the on-chain Config PDA whenever the wallet/program changes.
   useEffect(() => {
@@ -935,7 +952,7 @@ function App() {
           }
         },
       );
-      setSolPrice(solUsd);
+      setSolPrice(solUsd > 0 ? solUsd : SOL_PRICE_FALLBACK_USDC);
       setPortfolioValueUsdc(portfolioUsdc);
 
       // Hide balances in the selected output currency (USDC/USDT/SOL) from the
