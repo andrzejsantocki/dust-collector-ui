@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import { WalletMultiButton, useWalletModal } from "@solana/wallet-adapter-react-ui";
 import {
   AddressLookupTableAccount,
   Connection,
@@ -238,6 +238,7 @@ const estimatedTimeSaved = (accounts: number) => {
 
 function App() {
   const wallet = useWallet();
+  const { setVisible: setWalletModalVisible } = useWalletModal();
   const connected = !!wallet.connected && !!wallet.publicKey;
   const walletAddress = wallet.publicKey ?? null;
 
@@ -249,6 +250,11 @@ function App() {
     signature: string;
     blockTime: number | null;
   } | null>(null);
+  // All-time tidy totals derived from the program's signature history.
+  const [tidyTotals, setTidyTotals] = useState<{ txs: number; failed: number } | null>(null);
+  const [faqOpen, setFaqOpen] = useState<number | null>(null);
+  const [swipeHint, setSwipeHint] = useState(false);
+  const heroRef = useRef<HTMLDivElement | null>(null);
   const [solBalance, setSolBalance] = useState<number | null>(null);
   const [heliusLatency, setHeliusLatency] = useState<number | null>(null);
   const [scanning, setScanning] = useState(false);
@@ -407,6 +413,104 @@ function App() {
       cancelled = true;
     };
   }, [connection]);
+
+  // "X accounts tidied" ticker: count the program's confirmed signatures.
+  // Cached in localStorage for 15 minutes — pagination is cheap here (the
+  // program has a small history) but no reason to re-walk it on every view.
+  const TIDY_TOTALS_CACHE = "tidify_totals_v1";
+  useEffect(() => {
+    let cancelled = false;
+    const cached = (() => {
+      try {
+        const raw = window.localStorage.getItem(TIDY_TOTALS_CACHE);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw) as { t: number; txs: number; failed: number };
+        return Date.now() - parsed.t < 15 * 60_000 ? parsed : null;
+      } catch {
+        return null;
+      }
+    })();
+    if (cached) {
+      setTidyTotals({ txs: cached.txs, failed: cached.failed });
+      return;
+    }
+    (async () => {
+      try {
+        let before: string | undefined;
+        let txs = 0;
+        let failed = 0;
+        for (let page = 0; page < 10; page++) {
+          const sigs = await connection.getSignaturesForAddress(PROGRAM_ID, {
+            limit: 1000,
+            before,
+          });
+          if (sigs.length === 0) break;
+          txs += sigs.length;
+          failed += sigs.filter((s) => s.err).length;
+          before = sigs[sigs.length - 1].signature;
+          if (sigs.length < 1000) break;
+        }
+        if (cancelled) return;
+        setTidyTotals({ txs, failed });
+        try {
+          window.localStorage.setItem(
+            TIDY_TOTALS_CACHE,
+            JSON.stringify({ t: Date.now(), txs, failed }),
+          );
+        } catch {
+          // storage unavailable — ticker just refetches next view
+        }
+      } catch {
+        // leave null — hero shows the neutral placeholder
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [connection]);
+
+  // Mobile: the first "dead" swipe on the hero (overscroll at top or a
+  // horizontal swipe) means the visitor tried to interact with a static
+  // area. Show a one-time hint and snap-scroll to the scan card.
+  useEffect(() => {
+    if (stage !== "setup") return;
+    const el = heroRef.current;
+    if (!el) return;
+    let startX = 0;
+    let startY = 0;
+    const onTouchStart = (e: TouchEvent) => {
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      const dx = e.touches[0].clientX - startX;
+      const dy = e.touches[0].clientY - startY;
+      const overscrollTop = window.scrollY === 0 && dy > 50;
+      if (Math.abs(dx) <= 50 && !overscrollTop) return;
+      let shown = false;
+      try {
+        shown = window.localStorage.getItem("tidify_swipe_hint_shown") === "1";
+      } catch {
+        /* ignore */
+      }
+      if (shown) return;
+      try {
+        window.localStorage.setItem("tidify_swipe_hint_shown", "1");
+      } catch {
+        /* ignore */
+      }
+      capture("swipe_hint_shown", { dx: Math.round(dx), dy: Math.round(dy) });
+      setSwipeHint(true);
+      window.setTimeout(() => setSwipeHint(false), 3200);
+      document.querySelector(".setup-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    };
+    el.addEventListener("touchstart", onTouchStart, { passive: true });
+    el.addEventListener("touchmove", onTouchMove, { passive: true });
+    return () => {
+      el.removeEventListener("touchstart", onTouchStart);
+      el.removeEventListener("touchmove", onTouchMove);
+    };
+  }, [stage]);
 
   // Load the on-chain Config PDA whenever the wallet/program changes.
   useEffect(() => {
@@ -1194,6 +1298,12 @@ function App() {
         </div>
       </header>
 
+      {swipeHint && (
+        <div className="swipe-hint" role="status">
+          This is the intro — the scan card is right here. Paste a wallet or connect.
+        </div>
+      )}
+
       {brandNudge && (
         <div className="brand-nudge" role="status">
           You're at the start — paste a wallet or connect to begin.
@@ -1255,7 +1365,7 @@ function App() {
 
         {stage === "setup" && (
           <section className="setup-grid enter">
-            <div className="hero-card">
+            <div className="hero-card" ref={heroRef}>
               <span className="eyebrow">MAKE THE SMALL STUFF USEFUL</span>
               <h1>Turn leftover tokens<br /><em>into usable value.</em></h1>
               <p>Paste a wallet first. Tidify estimates recoverable value read-only, then asks you to connect only after there is something worth cleaning up.</p>
@@ -1284,8 +1394,30 @@ function App() {
                     </a>
                   )}
                 </div>
-                <div><strong>stats in progress</strong><span>not enough on-chain data yet</span></div>
-                <div><strong>your control</strong><span>you approve every action</span></div>
+                {tidyTotals ? (
+                  <a
+                    className="hero-stat-link"
+                    href={`${EXPLORER_URL}/program/${PROGRAM_ID.toBase58()}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    title="Every confirmed program transaction = one tidy operation"
+                  >
+                    <strong>{tidyTotals.txs} accounts tidied</strong>
+                    <span>≈{(tidyTotals.txs * 0.00203928).toFixed(3)} SOL rent returned</span>
+                  </a>
+                ) : (
+                  <div><strong>stats in progress</strong><span>not enough on-chain data yet</span></div>
+                )}
+                <button
+                  type="button"
+                  className="hero-stat-click"
+                  onClick={() => {
+                    capture("safety_scrolled", { from: "hero_stat" });
+                    document.getElementById("why-safe")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }}
+                >
+                  <strong>your control</strong><span>you approve every action</span>
+                </button>
               </div>
             </div>
 
@@ -1504,13 +1636,20 @@ function App() {
                     );
                   })()}
               {!connected && guestResult && (
-                <div className="post-scan-connect">
+                <button
+                  type="button"
+                  className="post-scan-connect"
+                  onClick={() => {
+                    capture("post_scan_connect_clicked");
+                    setWalletModalVisible(true);
+                  }}
+                >
                   <strong>Ready to clean it up?</strong>
-                  <div className="post-scan-actions">
+                  <span className="post-scan-actions">
                     <span>Connect wallet only after the read-only scan shows value.</span>
-                    <div className="wallet-button primary-wrap"><WalletMultiButton /></div>
-                  </div>
-                </div>
+                    <span className="post-scan-cta">Connect wallet →</span>
+                  </span>
+                </button>
               )}
             </div>
           </section>
@@ -1529,15 +1668,66 @@ function App() {
               </ol>
             </div>
 
-            <div className="marketing-block">
+            <div className="marketing-block" id="why-safe">
               <span className="eyebrow">WHY TIDIFY IS SAFE</span>
               <h2>Your wallet signs. Nothing is forced.</h2>
               <ul className="marketing-safety">
-                <li><strong>Non-custodial.</strong> Funds never pass through a Tidify-controlled account; your wallet signs every transaction.</li>
-                <li><strong>Nothing is forced.</strong> Every account must be explicitly selected; the default is always to do nothing.</li>
-                <li><strong>Fee ceiling on-chain.</strong> The protocol fee is configurable on-chain and capped; the preview shows the maximum before you approve.</li>
-                <li><strong>Unverified tokens are labeled.</strong> Tokens without verifiable metadata are marked “Unverified token” and link to an explorer.</li>
-                <li><strong>Unsupported tokens are left alone.</strong> Non-transferable or unsupported token accounts are never swapped.</li>
+                {[
+                  {
+                    title: "Non-custodial.",
+                    body: "Funds never pass through a Tidify-controlled account; your wallet signs every transaction.",
+                    detail: "The on-chain program can only act on the exact accounts you approve in one signed batch. Recovered SOL and swapped tokens land in addresses your wallet controls.",
+                  },
+                  {
+                    title: "Nothing is forced.",
+                    body: "Every account must be explicitly selected; the default is always to do nothing.",
+                    detail: "The plan starts with zero selected accounts. Only the rows you check can enter a transaction — leave everything unchecked and nothing happens.",
+                  },
+                  {
+                    title: "Fee ceiling on-chain.",
+                    body: "The protocol fee is configurable on-chain and capped; the preview shows the maximum before you approve.",
+                    detail: "The fee cap is enforced by the program itself: if a transaction tried to charge above the configured ceiling it would fail on-chain, not succeed. What you see before signing is the most you can pay.",
+                  },
+                  {
+                    title: "Unverified tokens are labeled.",
+                    body: "Tokens without verifiable metadata are marked “Unverified token” and link to an explorer.",
+                    detail: "Before anything is proposed, mints are checked against the verified Jupiter token list. Unrecognized mints are flagged and linked to the explorer so you can inspect them yourself.",
+                  },
+                  {
+                    title: "Unsupported tokens are left alone.",
+                    body: "Non-transferable or unsupported token accounts are never swapped.",
+                    detail: "Accounts with transfer restrictions or untradeable mints are classified 'unsupported' and skipped by the scanner — they are never part of a swap or burn proposal.",
+                  },
+                ].map((item, index) => (
+                  <li key={item.title} className={faqOpen === index ? "open" : ""}>
+                    <button
+                      type="button"
+                      className="faq-toggle"
+                      aria-expanded={faqOpen === index}
+                      onClick={() => {
+                        capture("faq_toggled", { item: index, open: faqOpen !== index });
+                        setFaqOpen(faqOpen === index ? null : index);
+                      }}
+                    >
+                      <strong>{item.title}</strong>
+                      <span className="faq-body">{item.body}</span>
+                      <span className="faq-chevron">{faqOpen === index ? "−" : "+"}</span>
+                    </button>
+                    <div className="faq-panel">
+                      <p>{item.detail}</p>
+                      <button
+                        type="button"
+                        className="faq-cta"
+                        onClick={() => {
+                          capture("faq_start_scan_clicked", { item: index });
+                          scrollToScan("identify");
+                        }}
+                      >
+                        Start a read-only scan →
+                      </button>
+                    </div>
+                  </li>
+                ))}
               </ul>
             </div>
 
