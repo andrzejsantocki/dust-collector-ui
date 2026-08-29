@@ -10,3 +10,4 @@ dist/
 apps/demo-ui/dist/
 scripts/rank_check.py
 scripts/rank_history.db
+.hermes-tmp.*
