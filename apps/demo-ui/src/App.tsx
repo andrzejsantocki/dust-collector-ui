@@ -1396,7 +1396,7 @@ function App() {
               <div className="panel-heading">
                 <div>
                   <span className="eyebrow">01 / SCAN</span>
-                  <h2>See how much your wallet can recover</h2>
+                  <h2>How much value is your wallet leaving behind?</h2>
                 </div>
               </div>
 
