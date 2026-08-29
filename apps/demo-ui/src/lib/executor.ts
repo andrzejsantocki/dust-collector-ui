@@ -326,7 +326,9 @@ export async function prepareInstructions(opts: PrepareOptions): Promise<Prepare
   return { transaction, label, blockhash, lastValidBlockHeight };
 }
 
-/** Submit one transaction from a wallet-signed batch and verify confirmation. */
+/** Submit one transaction from a wallet-signed batch and verify confirmation.
+ * Confirmation is bounded: a hanging confirmTransaction (flaky RPC) must not
+ * leave the UI stuck at "Sending…" after the tx already landed on-chain. */
 export async function sendPreparedTransaction(
   connection: Connection,
   prepared: PreparedTransaction,
@@ -336,14 +338,76 @@ export async function sendPreparedTransaction(
     skipPreflight: true,
     preflightCommitment: "confirmed",
   });
-  const confirmation = await connection.confirmTransaction(
-    {
-      signature,
-      blockhash: prepared.blockhash,
-      lastValidBlockHeight: prepared.lastValidBlockHeight,
-    },
-    "confirmed"
-  );
+  const CONFIRM_TIMEOUT_MS = 45_000;
+  const POLL_INTERVAL_MS = 2_000;
+  const POLL_ATTEMPTS = 15;
+
+  const confirmation = await Promise.race([
+    connection
+      .confirmTransaction(
+        {
+          signature,
+          blockhash: prepared.blockhash,
+          lastValidBlockHeight: prepared.lastValidBlockHeight,
+        },
+        "confirmed"
+      )
+      .then((v) => v as Awaited<ReturnType<Connection["confirmTransaction"]>> | null),
+    new Promise<null>((resolve) =>
+      window.setTimeout(() => resolve(null), CONFIRM_TIMEOUT_MS)
+    ),
+  ]);
+
+  if (!confirmation) {
+    // confirmTransaction hung (RPC stall) — poll signature status directly.
+    for (let i = 0; i < POLL_ATTEMPTS; i++) {
+      const statuses = await connection
+        .getSignatureStatuses([signature], { searchTransactionHistory: true })
+        .catch(() => null);
+      const status = statuses?.value?.[0] ?? null;
+      if (status && status.confirmations !== null) {
+        if (status.err) {
+          const txInfo = await connection
+            .getTransaction(signature, { commitment: "confirmed" })
+            .catch(() => null);
+          const logs = (txInfo?.meta?.logMessages ?? [])
+            .filter((l) => l.includes("Program log:"))
+            .slice(-4);
+          const detail = logs.length ? logs.join(" | ") : JSON.stringify(status.err);
+          const err = new Error(
+            `${prepared.label}: transaction failed on-chain (confirmed but errored) — ${detail}`
+          );
+          (err as Error & { signature?: string }).signature = signature;
+          throw err;
+        }
+        return signature;
+      }
+      await new Promise((r) => window.setTimeout(r, POLL_INTERVAL_MS));
+    }
+    // Last resort: the tx may be confirmed but status polling was rate-limited.
+    const txInfo = await connection
+      .getTransaction(signature, { commitment: "confirmed" })
+      .catch(() => null);
+    if (txInfo) {
+      if (txInfo.meta?.err) {
+        const logs = (txInfo.meta?.logMessages ?? [])
+          .filter((l) => l.includes("Program log:"))
+          .slice(-4);
+        const err = new Error(
+          `${prepared.label}: transaction failed on-chain (confirmed but errored) — ${logs.join(" | ") || JSON.stringify(txInfo.meta.err)}`
+        );
+        (err as Error & { signature?: string }).signature = signature;
+        throw err;
+      }
+      return signature;
+    }
+    const err = new Error(
+      `${prepared.label}: could not confirm the transaction status — it may still be processing. Signature: ${signature}`
+    );
+    (err as Error & { signature?: string }).signature = signature;
+    throw err;
+  }
+
   if (confirmation.value.err) {
     // The tx was included in a block but FAILED on-chain (paused protocol,
     // route race, fee cap, ...). confirmTransaction resolves regardless of
