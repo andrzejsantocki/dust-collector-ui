@@ -12,7 +12,13 @@ import { RPC_URL } from "./lib/constants";
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ConnectionProvider endpoint={RPC_URL}>
-      <WalletProvider wallets={[new SolflareWalletAdapter()]} autoConnect>
+      <WalletProvider wallets={[new SolflareWalletAdapter({
+        appIdentity: {
+          name: "Tidify",
+          uri: "https://tidify.xyz",
+          icon: "https://tidify.xyz/favicon-512.png",
+        },
+      })]} autoConnect>
         <WalletModalProvider>
           <App />
         </WalletModalProvider>
